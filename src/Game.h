@@ -2,6 +2,7 @@
 
 #include "SDL.h"
 #include <entt/entt.hpp>
+#include "Systems/SpriteSystem.h"
 
 class Game
 {
@@ -10,6 +11,7 @@ private:
 	SDL2::Renderer _renderer;
 	bool _running;
 	entt::registry registry;
+	SpriteSystem sprite_system;
 
 public:
 	struct position

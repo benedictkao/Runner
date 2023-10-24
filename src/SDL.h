@@ -2,22 +2,23 @@
 
 #include <SDL.h>
 
-namespace SDL2 {
-	typedef SDL_Window* Window;
-	typedef SDL_Renderer* Renderer;
+namespace SDL2
+{
+	typedef SDL_Window *Window;
+	typedef SDL_Renderer *Renderer;
 	typedef SDL_Event Event;
 	typedef SDL_Texture* Texture;
 	typedef SDL_Rect Rect;
 
-	constexpr auto INIT_SUCCESS{ 0 };
+	constexpr auto INIT_SUCCESS{0};
 
 	Uint32 init();
 
-	Window createWindow(const char*);
+	Window createWindow(const char *);
 
 	Renderer createRenderer(Window);
 
-	Uint32 pollEvent(Event*);
+	Uint32 pollEvent(Event *);
 
 	Uint64 elapsedTimeInMillis();
 
