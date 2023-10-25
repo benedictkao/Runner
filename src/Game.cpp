@@ -1,12 +1,13 @@
 #include "Game.h"
 
+#include <SDL.h>
+#include "math/Math.h"
+#include "Scene.h"
+
 static constexpr auto TARGET_FPS{ 30 };
 static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
 enum GAME_INIT_ERROR { SUBSYSTEM = 1, WINDOW, RENDERER };
 
-static inline Uint64 max(Uint64 a, Uint64 b) noexcept {
-	return a > b ? a : b;
-}
 
 Game::Game() : _window(nullptr), _renderer(nullptr), _running(false) {}
 
@@ -15,7 +16,7 @@ int Game::run() {
 	if (initResult != SDL2::INIT_SUCCESS)
 		return GAME_INIT_ERROR::SUBSYSTEM;
 
-	_window = SDL2::createWindow("Jump!");
+	_window = SDL2::createWindow("Runner");
 	if (!_window)
 		return GAME_INIT_ERROR::WINDOW;
 
@@ -24,6 +25,10 @@ int Game::run() {
 		return GAME_INIT_ERROR::RENDERER;
 
 	_running = true;
+
+	Scene scene(_renderer);
+	scene.init();
+
 	while (_running) {
 		// main game loop
 
@@ -32,8 +37,9 @@ int Game::run() {
 		handleEvents();
 		
 		// calculations
+		scene.update();
 
-		// ui render
+		SDL2::renderAll(_renderer);
 
 		Uint64 sleepTime = calculateSleepTime(frameStart);
 		SDL2::delay(sleepTime);
@@ -58,6 +64,6 @@ void Game::handleEvents() {
 
 Uint64 Game::calculateSleepTime(Uint64 frameStart) {
 	Uint64 actualFrameTime = frameStart - SDL2::elapsedTimeInMillis();
-	Uint64 sleepTime = max(MILLIS_PER_FRAME - actualFrameTime, 0);
+	Uint64 sleepTime = math::max<Uint64>(MILLIS_PER_FRAME - actualFrameTime, 0);
 	return sleepTime;
 }
