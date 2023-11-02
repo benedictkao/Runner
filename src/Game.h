@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KeyboardController.h"
 #include "SDL.h"
 
 class Game {
@@ -13,7 +14,7 @@ public:
 
 	int run();
 
-	void handleEvents();
+	void handleEvents(KeyboardController&);
 
 	Uint64 calculateSleepTime(Uint64);
 };

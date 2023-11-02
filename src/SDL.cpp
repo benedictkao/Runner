@@ -40,12 +40,29 @@ SDL2::Texture SDL2::loadTexture(Renderer renderer, const char* path) {
 	return tex;
 }
 
+void SDL2::destroyTexture(SDL2::Texture tex) {
+	SDL_DestroyTexture(tex);
+}
+
+bool SDL2::hasIntersect(const Rect& a, const Rect& b) {
+	return static_cast<bool>(SDL_HasIntersection(&a, &b));
+}
+
+bool SDL2::hasIntersect(const Rect& a, const Rect& b, Rect* result) {
+	return static_cast<bool>(SDL_IntersectRect(&a, &b, result));
+}
+
 void SDL2::blit(Renderer renderer, Texture tex, const Rect& dest) {
 	SDL_RenderCopy(renderer, tex, NULL, &dest);
 }
 
 void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& dest) {
 	SDL_RenderCopy(renderer, tex, &src, &dest);
+}
+
+void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& dest, bool flipHorizontal) {
+	SDL_RendererFlip flipFlags = flipHorizontal ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+	SDL_RenderCopyEx(renderer, tex, &src, &dest, 0, NULL, flipFlags);
 }
 
 void SDL2::renderAll(Renderer renderer) {
@@ -56,7 +73,8 @@ void SDL2::delay(Uint32 timeInMillis) {
 	SDL_Delay(timeInMillis);
 }
 
-void SDL2::close(SDL2::Window window) {
+void SDL2::close(SDL2::Window window, SDL2::Renderer renderer) {
+	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-	SDL_Quit();
+	IMG_Quit();
 }

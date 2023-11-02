@@ -2,9 +2,10 @@
 
 #include <SDL.h>
 #include "math/Math.h"
+#include "PlayerController.h"
 #include "Scene.h"
 
-static constexpr auto TARGET_FPS{ 30 };
+static constexpr auto TARGET_FPS{ 60 };
 static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
 enum GAME_INIT_ERROR { SUBSYSTEM = 1, WINDOW, RENDERER };
 
@@ -26,7 +27,10 @@ int Game::run() {
 
 	_running = true;
 
-	Scene scene(_renderer);
+	PlayerController pControl;
+	TextureRepo texRepo(_renderer);
+	KeyboardController kControl(pControl);
+	Scene scene(_renderer, pControl, texRepo);
 	scene.init();
 
 	while (_running) {
@@ -34,8 +38,8 @@ int Game::run() {
 
 		Uint64 frameStart = SDL2::elapsedTimeInMillis();
 
-		handleEvents();
-		
+		handleEvents(kControl);
+
 		// calculations
 		scene.update();
 
@@ -45,16 +49,22 @@ int Game::run() {
 		SDL2::delay(sleepTime);
 	}
 
-	SDL2::close(_window);
+	SDL2::close(_window, _renderer);
 	return 0;
 }
 
-void Game::handleEvents() {
+void Game::handleEvents(KeyboardController& kControl) {
 	SDL2::Event event;
 	while (SDL2::pollEvent(&event)) {
 		switch (event.type) {	// add other events below here
 		case SDL_QUIT:
 			_running = false;
+			break;
+		case SDL_KEYDOWN:
+			kControl.handleKeyDown(event.key.keysym.sym);
+			break;
+		case SDL_KEYUP:
+			kControl.handleKeyUp(event.key.keysym.sym);
 			break;
 		default:
 			break;
