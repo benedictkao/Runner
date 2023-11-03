@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include "../Components.h"
+#include "Geometry.h"
 #include "../SDL.h"
 
 namespace math {
@@ -26,23 +26,29 @@ namespace math {
 		coerceAtMost(value, static_cast<T>(0));
 	}
 
-	SDL2::Rect toRect(const TransformComponent&);
+	SDL2::Rect toSDLRect(const Rect2Df&);
 
 	bool rayVsRect(
 		const Vector2Df& origin, 
 		const Vector2Df& direction, 
-		const TransformComponent& target,
+		const Rect2Df& target,
 		Vector2Df& contactPoint,
 		Vector2Df& contactNormal,
 		float& contactTime
 	);
 
 	bool sweptRectVsRect(
-		const TransformComponent& movingRect,
-		const Vector2Df& direction,
-		const TransformComponent& target,
+		const Rect2Df& movingRect,
+		const Vector2Df& movement,
+		const Rect2Df& target,
 		Vector2Df& contactPoint,
 		Vector2Df& contactNormal,
 		float& contactTime
+	);
+
+	Vector2Df resolveSweptRectVsRect(
+		const Rect2Df& movingRect,
+		Vector2Df& movement,
+		const Rect2Df& target
 	);
 }

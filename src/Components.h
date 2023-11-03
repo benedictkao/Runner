@@ -10,8 +10,7 @@ struct TagComponent {
 };
 
 struct TransformComponent {
-	Vector2Df pos;
-	Vector2Df size;
+	Rect2Df rect;
 };
 
 struct SpriteComponent {
@@ -33,7 +32,7 @@ struct AnimationComponent {
 };
 
 struct VelocityComponent {
-	Vector2Df dir;
+	Vector2Df vector;
 
 	VelocityComponent();
 };

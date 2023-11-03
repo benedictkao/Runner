@@ -23,6 +23,8 @@ struct Vector2Df {
 	Vector2Df operator/(float f) const;
 
 	Vector2Df& operator+=(const Vector2Df& v);
+
+	Vector2Df inverse() const;
 };
 
 struct Padding {
@@ -30,4 +32,9 @@ struct Padding {
 	int right;
 	int top;
 	int bottom;
+};
+
+struct Rect2Df {
+	Vector2Df pos;
+	Vector2Df size;
 };

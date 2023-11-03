@@ -45,3 +45,7 @@ Vector2Df& Vector2Df::operator+=(const Vector2Df& v) {
 	y += v.y;
 	return *this;
 }
+
+Vector2Df Vector2Df::inverse() const {
+	return { 1.0f / x, 1.0f / y };
+}

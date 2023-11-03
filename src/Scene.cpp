@@ -3,7 +3,7 @@
 #include "SDL.h"
 #include "math/Math.h"
 #include <iostream>
-#include <string>
+#include <vector>
 
 constexpr auto WINDOW_WIDTH{ 800.0f };
 constexpr auto WINDOW_HEIGHT{ 648.0f };
@@ -82,7 +82,7 @@ void Scene::updatePlayer() {
 	auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
 	int currMovement = _pControl.getCurrentMovement();
 	auto& velo = _registry.get<VelocityComponent>(_player);
-	velo.dir.x = currMovement * PLAYER_SPEED;
+	velo.vector.x = currMovement * PLAYER_SPEED;
 
 	if (_pControl.isOnGround()) {
 		if (currMovement != 0) {
@@ -98,7 +98,7 @@ void Scene::updatePlayer() {
 		}
 
 		if (_pControl.isJumping())
-			velo.dir.y = -JUMP_SPEED;
+			velo.vector.y = -JUMP_SPEED;
 	}
 	else {
 		sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
@@ -114,7 +114,7 @@ void Scene::updateTransforms() {
 	auto& view = _registry.view<VelocityComponent, TransformComponent>();
 	for (auto entity : view) {
 		auto& [velo, transform] = view.get(entity);
-		transform.pos += velo.dir;
+		transform.rect.pos += velo.vector;
 	}
 }
 
@@ -122,43 +122,56 @@ void Scene::updateVelocities() {
 	auto& view = _registry.view<VelocityComponent, GravityComponent>();
 	for (auto entity : view) {
 		auto& velo = view.get<VelocityComponent>(entity);
-		velo.dir.y += GRAVITY_ACCEL;
-		math::coerceAtMost(velo.dir.y, TERMINAL_DROP_VELO);
+		velo.vector.y += GRAVITY_ACCEL;
+		math::coerceAtMost(velo.vector.y, TERMINAL_DROP_VELO);
 	}
 }
 
 void Scene::updateCollisions() {
-	auto& walls = _registry.view<TransformComponent, WallComponent>();
-	auto& [playerTransform, playerVelo] = _registry.get<TransformComponent, VelocityComponent>(_player);
-	bool onGround = false;
-	for (auto entity : walls) {
-		// player is not moving, no need to calculate further collisions
-		if (playerVelo.dir.x == 0 && playerVelo.dir.y == 0)
-			break;
+	const auto& pRect = _registry.get<TransformComponent>(_player).rect;
+	auto& pMovement = _registry.get<VelocityComponent>(_player).vector;
+	const auto& walls = _registry.view<TransformComponent, WallComponent>();
 
-		auto& wallTransform = walls.get<TransformComponent>(entity);
+	struct Collision {
+		entt::entity entity;
+		float contactTime;
+	};
+
+	std::vector<Collision> collisions;
+	for (auto entity : walls) {
+		const auto& wallRect = walls.get<TransformComponent>(entity).rect;
 		Vector2Df contactPoint;
 		Vector2Df contactNormal;
 		float contactTime;
-		bool hasCollision = math::sweptRectVsRect(playerTransform, playerVelo.dir, wallTransform, contactPoint, contactNormal, contactTime);
-		if (hasCollision) {
-			// take absolute speed since direction should come from contactNormal
-			Vector2Df speed = { std::abs(playerVelo.dir.x), std::abs(playerVelo.dir.y) };
-			float adjustmentMagnitude = 1 - contactTime;	// has to be <= 1
-			Vector2Df veloAdjustment = contactNormal * speed * adjustmentMagnitude;	
-			playerVelo.dir += veloAdjustment;
-			if (contactNormal.y < 0) {
-				onGround = true;
-			}
+		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
+			collisions.push_back({entity, contactTime});
+		}
+	}
+	std::sort(collisions.begin(), collisions.end(),
+		[](const Collision& a, const Collision& b) {
+			return a.contactTime < b.contactTime;
+		}
+	);
+
+	bool onGround = false;
+	for (const auto& collision : collisions) {
+		// player is not moving, no need to calculate further collisions
+		if (pMovement.x == 0 && pMovement.y == 0)
+			break;
+
+		const auto& wallRect = walls.get<TransformComponent>(collision.entity).rect;
+		const Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
+		if (contactNormal.y < 0) {
+			onGround = true;
 		}
 	}
 	_pControl.setOnGround(onGround);
 }
 
 void Scene::updateAnimations() {
-	auto& view = _registry.view<AnimationComponent, SpriteComponent, TransformComponent>();
+	auto& view = _registry.view<AnimationComponent, SpriteComponent>();
 	for (auto entity : view) {
-		auto& [animation, sprite, transform] = view.get(entity);
+		auto& [animation, sprite] = view.get(entity);
 		if (animation.current >= animation.wavelength)
 			animation.current = 0;
 
@@ -172,8 +185,8 @@ void Scene::updateAnimations() {
 void Scene::updateSprites() {
 	auto& view = _registry.view<SpriteComponent, TransformComponent>();
 	for (auto entity : view) {
-		auto& [transform, sprite] = view.get<TransformComponent, SpriteComponent>(entity);
-		SDL2::Rect dest = math::toRect(transform);
+		const auto& [transform, sprite] = view.get<TransformComponent, SpriteComponent>(entity);
+		SDL2::Rect dest = math::toSDLRect(transform.rect);
 		//if (entity == _player)
 		//	std::cout << dest.y << std::endl;
 		int srcX = sprite.pos.x + sprite.padding.left;

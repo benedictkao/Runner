@@ -8,4 +8,4 @@ SpriteComponent::SpriteComponent(SDL2::Texture tex, float w, float h)
 
 AnimationComponent::AnimationComponent(int period, int wavelength) : period(period), wavelength(wavelength), current(0) {}
 
-VelocityComponent::VelocityComponent() : dir({ 0, 0 }) {}
+VelocityComponent::VelocityComponent() : vector({ 0, 0 }) {}
