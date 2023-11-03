@@ -74,6 +74,6 @@ void Game::handleEvents(KeyboardController& kControl) {
 
 Uint64 Game::calculateSleepTime(Uint64 frameStart) {
 	Uint64 actualFrameTime = frameStart - SDL2::elapsedTimeInMillis();
-	Uint64 sleepTime = math::max<Uint64>(MILLIS_PER_FRAME - actualFrameTime, 0);
+	Uint64 sleepTime = std::max<Uint64>(MILLIS_PER_FRAME - actualFrameTime, 0);
 	return sleepTime;
 }
