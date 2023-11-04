@@ -3,11 +3,11 @@
 #include <utility>
 #include <iostream>
 
-SDL2::Rect math::toSDLRect(const Rect2Df& rect) {
-	return { static_cast<int>(rect.pos.x),
-		static_cast<int>(rect.pos.y),
-		static_cast<int>(rect.size.x),
-		static_cast<int>(rect.size.y) };
+SDL2::Rect math::toSDLRect(const Rect2Df& srcRect) {
+	return { static_cast<int>(srcRect.pos.x),
+		static_cast<int>(srcRect.pos.y),
+		static_cast<int>(srcRect.size.x),
+		static_cast<int>(srcRect.size.y) };
 }
 
 bool math::rayVsRect(
@@ -56,7 +56,7 @@ bool math::rayVsRect(
 	if (contactTime2D.x < contactTime2D.y) { // cross vertical line before horizontal -> vertical collision
 		contactNormal = { 0.0f, direction.y < 0.0f ? 1.0f : -1.0f };
 	}
-	else if (contactTime2D.x > contactTime2D.y) {
+	else if (contactTime2D.x > contactTime2D.y) { // cross horizontal line before vertical -> horizontal collision
 		contactNormal = { direction.x < 0.0f ? 1.0f : -1.0f, 0.0f };
 	}
 	// Note if contactTime2D.x == contactTime2D.y, collision is principly in a diagonal

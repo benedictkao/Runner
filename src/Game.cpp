@@ -49,6 +49,7 @@ int Game::run() {
 		SDL2::delay(sleepTime);
 	}
 
+	texRepo.clear();
 	SDL2::close(_window, _renderer);
 	return 0;
 }

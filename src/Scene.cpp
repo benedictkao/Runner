@@ -1,16 +1,13 @@
 #include "Scene.h"
 #include "Components.h"
+#include "Constants.h"
 #include "SDL.h"
 #include "math/Math.h"
 #include <iostream>
 #include <vector>
 
-constexpr auto WINDOW_WIDTH{ 800.0f };
-constexpr auto WINDOW_HEIGHT{ 648.0f };
 constexpr auto PLAYER_SPEED{ 6.0f };
 constexpr auto JUMP_SPEED{ 24.0f };
-constexpr auto GRAVITY_ACCEL{ 2.0f };
-constexpr auto TERMINAL_DROP_VELO{ 20.0f };
 constexpr auto ANIMATION_PERIOD{ 4 };
 
 Scene::Scene(
@@ -26,7 +23,7 @@ void Scene::init() {
 	_texRepo.loadTexture(TextureIds::PLAYER_RUN);
 	_texRepo.loadTexture(TextureIds::PLAYER_JUMP);
 
-	_registry.emplace<TransformComponent>(_player, 100.0f, 200.0f, 56.0f, 88.0f);
+	_registry.emplace<TransformComponent>(_player, 100.0f, 200.0f, 45.0f, 88.0f);
 	_registry.emplace<SpriteComponent>(_player, sprite, 128, 128);
 	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
 	_registry.emplace<VelocityComponent>(_player);
@@ -38,23 +35,23 @@ void Scene::init() {
 	_registry.emplace<SpriteComponent>(_background, bg, 2304, 1296);
 
 	auto floor = _registry.create();
-	_registry.emplace<TransformComponent>(floor, 0.0f, WINDOW_HEIGHT, WINDOW_WIDTH, 1.0f);
+	_registry.emplace<TransformComponent>(floor, 0.0f, constants::WINDOW_HEIGHT, constants::WINDOW_WIDTH, 1.0f);
 	_registry.emplace<WallComponent>(floor);
 	_registry.emplace<TagComponent>(floor, "Floor");
 
 	auto lWall = _registry.create();
-	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, WINDOW_HEIGHT);
+	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, constants::WINDOW_HEIGHT);
 	_registry.emplace<WallComponent>(lWall);
 	_registry.emplace<TagComponent>(lWall, "Left Wall");
 	auto rWall = _registry.create();
-	_registry.emplace<TransformComponent>(rWall, WINDOW_WIDTH, 0.0f, 1.0f, WINDOW_HEIGHT);
+	_registry.emplace<TransformComponent>(rWall, constants::WINDOW_WIDTH, 0.0f, 1.0f, constants::WINDOW_HEIGHT);
 	_registry.emplace<WallComponent>(rWall);
 	_registry.emplace<TagComponent>(rWall, "Right Wall");
 
 	auto platformTex = _texRepo.loadTexture(TextureIds::TILE);
 	for (int i = 0; i < 5; i++) {
 		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, 200.0f + 32 * i, WINDOW_HEIGHT - 128, 32.0f, 32.0f);
+		_registry.emplace<TransformComponent>(platform, 200.0f + 32 * i, constants::WINDOW_HEIGHT - 128, 32.0f, 32.0f);
 		_registry.emplace<SpriteComponent>(platform, platformTex, 32, 32);
 		_registry.emplace<WallComponent>(platform);
 		_registry.emplace<TagComponent>(platform, "Platform");
@@ -73,8 +70,8 @@ void Scene::update() {
 
 void Scene::updateBackground() {
 	auto& sprite = _registry.get<SpriteComponent>(_background);
-	SDL2::Rect src = { 0, 0, 1600, 1296 };
-	SDL2::Rect dest = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+	SDL2::Rect src = { 0, 0, constants::WINDOW_WIDTH * 2, constants::WINDOW_HEIGHT * 2 };
+	SDL2::Rect dest = { 0, 0, constants::WINDOW_WIDTH, constants::WINDOW_HEIGHT };
 	SDL2::blit(_renderer, sprite.tex, src, dest);
 }
 
@@ -87,13 +84,13 @@ void Scene::updatePlayer() {
 	if (_pControl.isOnGround()) {
 		if (currMovement != 0) {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_RUN);
-			sprite.padding = { 18, 54, 40, 0 };
+			sprite.offset = { 24, 40 };
 			sprite.flipHorizontal = currMovement < 0;
 			animation.wavelength = ANIMATION_PERIOD * 8;
 		}
 		else {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
-			sprite.padding = { 36, 36, 40, 0 };
+			sprite.offset = { 50, 40 };
 			animation.wavelength = ANIMATION_PERIOD * 6;
 		}
 
@@ -102,7 +99,7 @@ void Scene::updatePlayer() {
 	}
 	else {
 		sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
-		sprite.padding = { 26, 48, 40, 0 };
+		sprite.offset = { 36, 40 };
 		if (currMovement != 0) {
 			sprite.flipHorizontal = currMovement < 0;
 		}
@@ -122,8 +119,8 @@ void Scene::updateVelocities() {
 	auto& view = _registry.view<VelocityComponent, GravityComponent>();
 	for (auto entity : view) {
 		auto& velo = view.get<VelocityComponent>(entity);
-		velo.vector.y += GRAVITY_ACCEL;
-		math::coerceAtMost(velo.vector.y, TERMINAL_DROP_VELO);
+		velo.vector.y += constants::GRAVITY_ACCEL;
+		math::coerceAtMost(velo.vector.y, constants::TERMINAL_DROP_VELO);
 	}
 }
 
@@ -176,7 +173,7 @@ void Scene::updateAnimations() {
 			animation.current = 0;
 
 		int spritePos = animation.current / animation.period;
-		sprite.pos.x = spritePos * sprite.size.x;
+		sprite.srcRect.pos.x = spritePos * sprite.srcRect.size.x;
 
 		++animation.current;
 	}
@@ -186,14 +183,22 @@ void Scene::updateSprites() {
 	auto& view = _registry.view<SpriteComponent, TransformComponent>();
 	for (auto entity : view) {
 		const auto& [transform, sprite] = view.get<TransformComponent, SpriteComponent>(entity);
-		SDL2::Rect dest = math::toSDLRect(transform.rect);
+		float w = sprite.srcRect.size.x;
+		float h = sprite.srcRect.size.y;
+
+		// if flipped, need to find offset of other side of sprite pack
+		float offsetX = sprite.flipHorizontal ? sprite.srcRect.size.x - transform.rect.size.x - sprite.offset.x : sprite.offset.x;
+
+		SDL2::Rect dest = { static_cast<int>(transform.rect.pos.x - offsetX),
+			static_cast<int>(transform.rect.pos.y - sprite.offset.y),
+			static_cast<int>(w),
+			static_cast<int>(h) };
+
 		//if (entity == _player)
 		//	std::cout << dest.y << std::endl;
-		int srcX = sprite.pos.x + sprite.padding.left;
-		int srcY = sprite.pos.y + sprite.padding.top;
-		int srcW = sprite.size.x - sprite.padding.left - sprite.padding.right;
-		int srcH = sprite.size.y - sprite.padding.top - sprite.padding.bottom;
-		SDL2::Rect src = { srcX, srcY, srcW, srcH };
+		int srcX = sprite.srcRect.pos.x;
+		int srcY = sprite.srcRect.pos.y;
+		SDL2::Rect src = { srcX, srcY, w, h };
 		SDL2::blit(_renderer, sprite.tex, src, dest, sprite.flipHorizontal);
 	}
 }

@@ -15,9 +15,8 @@ struct TransformComponent {
 
 struct SpriteComponent {
 	SDL2::Texture tex;
-	Vector2Df size;
-	Vector2Df pos;
-	Padding padding;
+	Rect2Df srcRect; // srcRect in the sprite pack
+	Vector2Df offset; // offset from hit box
 	bool flipHorizontal;
 
 	SpriteComponent(SDL2::Texture, float w, float h);

@@ -1,15 +1,14 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-static constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
-static constexpr auto DEFAULT_WINDOW_HEIGHT{ 648 };
+#include "Constants.h"
 
 Uint32 SDL2::init() {
 	return SDL_Init(SDL_INIT_VIDEO);
 }
 
 SDL2::Window SDL2::createWindow(const char* title) {
-	return SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, false);
+	return SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, constants::WINDOW_WIDTH, constants::WINDOW_HEIGHT, false);
 }
 
 SDL2::Renderer SDL2::createRenderer(SDL2::Window window) {

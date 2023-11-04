@@ -4,7 +4,7 @@
 TagComponent::TagComponent(const char* tag) : tag(tag) {}
 
 SpriteComponent::SpriteComponent(SDL2::Texture tex, float w, float h)
-	: tex(tex), size({ w, h }), pos({ 0, 0 }), padding({ 0, 0, 0, 0 }), flipHorizontal(false) {}
+	: tex(tex), srcRect({ 0, 0, w, h }), offset({ 0, 0 }), flipHorizontal(false) {}
 
 AnimationComponent::AnimationComponent(int period, int wavelength) : period(period), wavelength(wavelength), current(0) {}
 

@@ -27,13 +27,6 @@ struct Vector2Df {
 	Vector2Df inverse() const;
 };
 
-struct Padding {
-	int left;
-	int right;
-	int top;
-	int bottom;
-};
-
 struct Rect2Df {
 	Vector2Df pos;
 	Vector2Df size;
