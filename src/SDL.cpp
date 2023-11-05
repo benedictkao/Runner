@@ -61,10 +61,20 @@ void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& des
 
 void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& dest, bool flipHorizontal) {
 	SDL_RendererFlip flipFlags = flipHorizontal ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+	//int status = SDL_RenderCopyEx(renderer, tex, &src, &dest, 0, NULL, flipFlags);
+	//if (status != 0)
+	//	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION,
+	//		SDL_LOG_PRIORITY_INFO,
+	//		"Failed to render. Error: %s",
+	//		SDL_GetError());
 	SDL_RenderCopyEx(renderer, tex, &src, &dest, 0, NULL, flipFlags);
 }
 
-void SDL2::renderAll(Renderer renderer) {
+void SDL2::prepareScene(Renderer renderer) {
+	SDL_RenderClear(renderer);	// clears scene in case to prevent images from old frames being shown by accident
+}
+
+void SDL2::presentScene(Renderer renderer) {
 	SDL_RenderPresent(renderer);
 }
 

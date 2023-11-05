@@ -9,6 +9,7 @@
 constexpr auto PLAYER_SPEED{ 6.0f };
 constexpr auto JUMP_SPEED{ 24.0f };
 constexpr auto ANIMATION_PERIOD{ 4 };
+constexpr auto TILE_SIZE{ 32.0f };
 
 Scene::Scene(
 	SDL2::Renderer renderer,
@@ -22,8 +23,9 @@ void Scene::init() {
 	auto sprite = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
 	_texRepo.loadTexture(TextureIds::PLAYER_RUN);
 	_texRepo.loadTexture(TextureIds::PLAYER_JUMP);
+	_texRepo.loadTexture(TextureIds::PLAYER_FALL);
 
-	_registry.emplace<TransformComponent>(_player, 100.0f, 200.0f, 45.0f, 88.0f);
+	_registry.emplace<TransformComponent>(_player, 100.0f, 200.0f, 36.0f, 80.0f);
 	_registry.emplace<SpriteComponent>(_player, sprite, 128, 128);
 	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
 	_registry.emplace<VelocityComponent>(_player);
@@ -34,10 +36,15 @@ void Scene::init() {
 	auto bg = _texRepo.loadTexture(TextureIds::BACKGROUND);
 	_registry.emplace<SpriteComponent>(_background, bg, 2304, 1296);
 
-	auto floor = _registry.create();
-	_registry.emplace<TransformComponent>(floor, 0.0f, constants::WINDOW_HEIGHT, constants::WINDOW_WIDTH, 1.0f);
-	_registry.emplace<WallComponent>(floor);
-	_registry.emplace<TagComponent>(floor, "Floor");
+	auto platformTex = _texRepo.loadTexture(TextureIds::TILE);
+	int numTiles = constants::WINDOW_WIDTH / TILE_SIZE;
+	for (int i = 0; i < numTiles; ++i) {
+		auto floor = _registry.create();
+		_registry.emplace<TransformComponent>(floor, TILE_SIZE * i, constants::WINDOW_HEIGHT - TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		_registry.emplace<SpriteComponent>(floor, platformTex, 32, 32);
+		_registry.emplace<WallComponent>(floor);
+		_registry.emplace<TagComponent>(floor, "Floor");
+	}
 
 	auto lWall = _registry.create();
 	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, constants::WINDOW_HEIGHT);
@@ -48,10 +55,9 @@ void Scene::init() {
 	_registry.emplace<WallComponent>(rWall);
 	_registry.emplace<TagComponent>(rWall, "Right Wall");
 
-	auto platformTex = _texRepo.loadTexture(TextureIds::TILE);
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 5; ++i) {
 		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, 200.0f + 32 * i, constants::WINDOW_HEIGHT - 128, 32.0f, 32.0f);
+		_registry.emplace<TransformComponent>(platform, 200.0f + TILE_SIZE * i, constants::WINDOW_HEIGHT - 164, TILE_SIZE, TILE_SIZE);
 		_registry.emplace<SpriteComponent>(platform, platformTex, 32, 32);
 		_registry.emplace<WallComponent>(platform);
 		_registry.emplace<TagComponent>(platform, "Platform");
@@ -64,8 +70,8 @@ void Scene::update() {
 	updateVelocities();
 	updateCollisions();
 	updateTransforms();
-	updateSprites();
 	updateAnimations();
+	updateSprites();
 }
 
 void Scene::updateBackground() {
@@ -84,26 +90,32 @@ void Scene::updatePlayer() {
 	if (_pControl.isOnGround()) {
 		if (currMovement != 0) {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_RUN);
-			sprite.offset = { 24, 40 };
+			sprite.offset = { 32, 48 };
 			sprite.flipHorizontal = currMovement < 0;
 			animation.wavelength = ANIMATION_PERIOD * 8;
 		}
 		else {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
-			sprite.offset = { 50, 40 };
+			sprite.offset = { 46, 48 };
 			animation.wavelength = ANIMATION_PERIOD * 6;
 		}
 
-		if (_pControl.isJumping())
+		if (_pControl.isJumping()) {
 			velo.vector.y = -JUMP_SPEED;
+		}
 	}
 	else {
-		sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
-		sprite.offset = { 36, 40 };
+		if (velo.vector.y > 0) {
+			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_FALL);
+		}
+		else {
+			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
+		}
+		sprite.offset = { 44, 48 };
 		if (currMovement != 0) {
 			sprite.flipHorizontal = currMovement < 0;
 		}
-		animation.wavelength = 0;
+		animation.wavelength = 1;
 	}
 }
 
@@ -196,9 +208,8 @@ void Scene::updateSprites() {
 
 		//if (entity == _player)
 		//	std::cout << dest.y << std::endl;
-		int srcX = sprite.srcRect.pos.x;
-		int srcY = sprite.srcRect.pos.y;
-		SDL2::Rect src = { srcX, srcY, w, h };
+		const auto& srcPos = sprite.srcRect.pos;
+		SDL2::Rect src = { srcPos.x, srcPos.y, w, h };
 		SDL2::blit(_renderer, sprite.tex, src, dest, sprite.flipHorizontal);
 	}
 }

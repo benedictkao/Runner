@@ -1,7 +1,8 @@
 #include "Math.h"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <utility>
-#include <iostream>
 
 SDL2::Rect math::toSDLRect(const Rect2Df& srcRect) {
 	return { static_cast<int>(srcRect.pos.x),
@@ -59,9 +60,12 @@ bool math::rayVsRect(
 	else if (contactTime2D.x > contactTime2D.y) { // cross horizontal line before vertical -> horizontal collision
 		contactNormal = { direction.x < 0.0f ? 1.0f : -1.0f, 0.0f };
 	}
-	// Note if contactTime2D.x == contactTime2D.y, collision is principly in a diagonal
-	// so pointless to resolve. By returning contactNormal = {0, 0} even though it is
-	// considered a hit, the resolver wont change anything.
+	else if (direction.x != 0 && direction.y != 0) { // contact point and normal is at a diagonal
+		contactNormal = { M_SQRT2, M_SQRT2 };
+	}
+	else { // contact point is at a diagonal, but moving either up or down only, so there is effectively no collision
+		return false;
+	}
 
 	return true;
 }

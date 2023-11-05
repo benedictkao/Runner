@@ -4,6 +4,7 @@
 #include "math/Math.h"
 #include "PlayerController.h"
 #include "Scene.h"
+#include "util/Logger.h"
 
 static constexpr auto TARGET_FPS{ 60 };
 static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
@@ -25,6 +26,8 @@ int Game::run() {
 	if (!_renderer)
 		return GAME_INIT_ERROR::RENDERER;
 
+	debug::log("Init success!");
+
 	_running = true;
 
 	PlayerController pControl;
@@ -38,12 +41,13 @@ int Game::run() {
 
 		Uint64 frameStart = SDL2::elapsedTimeInMillis();
 
+		SDL2::prepareScene(_renderer);
 		handleEvents(kControl);
 
 		// calculations
 		scene.update();
 
-		SDL2::renderAll(_renderer);
+		SDL2::presentScene(_renderer);
 
 		Uint64 sleepTime = calculateSleepTime(frameStart);
 		SDL2::delay(sleepTime);

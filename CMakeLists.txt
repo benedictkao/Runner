@@ -19,5 +19,5 @@ add_executable(main
 	"src/KeyboardController.cpp"
 	"src/TextureRepo.cpp"
 	"src/math/Geometry.cpp"
-	"src/math/Math.cpp" "src/Constants.h")
+	"src/math/Math.cpp")
 target_link_libraries(main SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer) # SDL2main runs SDL2main function which then calls this source main

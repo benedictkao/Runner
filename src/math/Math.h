@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cmath>
 #include "Geometry.h"
 #include "../SDL.h"
 

@@ -5,13 +5,15 @@ namespace TextureIds {
 	constexpr auto PLAYER_IDLE = 1;
 	constexpr auto PLAYER_RUN = 2;
 	constexpr auto PLAYER_JUMP = 3;
-	constexpr auto TILE = 4;
+	constexpr auto PLAYER_FALL = 4;
+	constexpr auto TILE = 5;
 
 	constexpr const char* PATHS[] = {
 		"../../../res/texture/background/4.png",
 		"../../../res/texture/sprite/Idle.png",
 		"../../../res/texture/sprite/Run.png",
-		"../../../res/texture/sprite/Jump.png",
+		"../../../res/texture/sprite/Jump4.png",
+		"../../../res/texture/sprite/Jump2.png",
 		"../../../res/texture/tile/Tile_03.png"
 	};
 

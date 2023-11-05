@@ -36,7 +36,9 @@ namespace SDL2 {
 
 	void blit(Renderer, Texture, const Rect& src, const Rect& dest, bool flipHorizontal);
 
-	void renderAll(Renderer);
+	void prepareScene(Renderer);
+
+	void presentScene(Renderer);
 
 	void delay(Uint32);
 
