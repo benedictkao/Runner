@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include "math/Geometry.h"
 
 namespace SDL2 {
 	typedef SDL_Window* Window;
@@ -9,6 +10,7 @@ namespace SDL2 {
 	typedef SDL_Texture* Texture;
 	typedef SDL_Rect Rect;
 	typedef SDL_Keycode Keycode;
+	typedef SDL_MouseButtonEvent MouseEvent;
 
 	constexpr auto INIT_SUCCESS{ 0 };
 
@@ -19,6 +21,8 @@ namespace SDL2 {
 	Renderer createRenderer(Window);
 
 	Uint32 pollEvent(Event*);
+
+	Vector2D getMouseCoordinates();
 
 	Uint64 elapsedTimeInMillis();
 

@@ -1,8 +1,8 @@
-#include "KeyboardController.h"
+#include "KeyboardHandler.h"
 
-KeyboardController::KeyboardController(PlayerController& pControl) : _pControl(pControl) {}
+KeyboardHandler::KeyboardHandler(PlayerState& pControl) : _pControl(pControl) {}
 
-void KeyboardController::handleKeyDown(SDL2::Keycode code) {
+void KeyboardHandler::handleKeyDown(SDL2::Keycode code) {
 	switch (code) {
 	case SDLK_LEFT:
 		_pControl.moveLeft();
@@ -23,7 +23,7 @@ void KeyboardController::handleKeyDown(SDL2::Keycode code) {
 	}
 }
 
-void KeyboardController::handleKeyUp(SDL2::Keycode code) {
+void KeyboardHandler::handleKeyUp(SDL2::Keycode code) {
 	switch (code) {
 	case SDLK_LEFT:
 		_pControl.stopMoveLeft();

@@ -15,9 +15,11 @@ add_executable(main
 	"src/Game.cpp" 
 	"src/Scene.cpp"
 	"src/Components.cpp" 
-	"src/PlayerController.cpp" 
-	"src/KeyboardController.cpp"
+	"src/PlayerState.cpp" 
+	"src/input/KeyboardHandler.cpp"
 	"src/TextureRepo.cpp"
 	"src/math/Geometry.cpp"
-	"src/math/Math.cpp")
+	"src/math/Math.cpp"
+	"src/input/InputManager.cpp"
+	"src/input/MouseHandler.cpp")
 target_link_libraries(main SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer) # SDL2main runs SDL2main function which then calls this source main

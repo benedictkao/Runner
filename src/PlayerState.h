@@ -1,13 +1,13 @@
 #pragma once
 
-class PlayerController {
+class PlayerState {
 private:
 	int _inputMovement;
 	bool _isJumping;
 	bool _onGround;
 
 public:
-	PlayerController();
+	PlayerState();
 
 	void moveLeft();
 	void moveRight();

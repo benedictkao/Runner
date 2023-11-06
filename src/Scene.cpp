@@ -13,7 +13,7 @@ constexpr auto TILE_SIZE{ 32.0f };
 
 Scene::Scene(
 	SDL2::Renderer renderer,
-	PlayerController& pControl,
+	PlayerState& pControl,
 	TextureRepo& texRepo
 ) : _renderer(renderer), _pControl(pControl), _texRepo(texRepo) {}
 

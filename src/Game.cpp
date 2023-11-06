@@ -1,10 +1,11 @@
 #include "Game.h"
 
-#include <SDL.h>
+#include "SDL.h"
 #include "math/Math.h"
-#include "PlayerController.h"
+#include "PlayerState.h"
 #include "Scene.h"
 #include "util/Logger.h"
+#include "input/InputManager.h"
 
 static constexpr auto TARGET_FPS{ 60 };
 static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
@@ -30,10 +31,12 @@ int Game::run() {
 
 	_running = true;
 
-	PlayerController pControl;
+	PlayerState pControl;
 	TextureRepo texRepo(_renderer);
-	KeyboardController kControl(pControl);
+	MKInputManager inputManager(pControl);
 	Scene scene(_renderer, pControl, texRepo);
+	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+	SDL_SetCursor(cursor);
 	scene.init();
 
 	while (_running) {
@@ -42,7 +45,7 @@ int Game::run() {
 		Uint64 frameStart = SDL2::elapsedTimeInMillis();
 
 		SDL2::prepareScene(_renderer);
-		handleEvents(kControl);
+		_running = inputManager.readInput();
 
 		// calculations
 		scene.update();
@@ -56,25 +59,6 @@ int Game::run() {
 	texRepo.clear();
 	SDL2::close(_window, _renderer);
 	return 0;
-}
-
-void Game::handleEvents(KeyboardController& kControl) {
-	SDL2::Event event;
-	while (SDL2::pollEvent(&event)) {
-		switch (event.type) {	// add other events below here
-		case SDL_QUIT:
-			_running = false;
-			break;
-		case SDL_KEYDOWN:
-			kControl.handleKeyDown(event.key.keysym.sym);
-			break;
-		case SDL_KEYUP:
-			kControl.handleKeyUp(event.key.keysym.sym);
-			break;
-		default:
-			break;
-		}
-	}
 }
 
 Uint64 Game::calculateSleepTime(Uint64 frameStart) {

@@ -2,6 +2,7 @@
 #include <SDL_image.h>
 
 #include "Constants.h"
+#include "SDL.h"
 
 Uint32 SDL2::init() {
 	return SDL_Init(SDL_INIT_VIDEO);
@@ -17,6 +18,12 @@ SDL2::Renderer SDL2::createRenderer(SDL2::Window window) {
 
 Uint32 SDL2::pollEvent(SDL2::Event* event) {
 	return SDL_PollEvent(event);
+}
+
+Vector2D SDL2::getMouseCoordinates() {
+	Vector2D result;
+	SDL_GetMouseState(&result.x, &result.y);
+	return result;
 }
 
 Uint64 SDL2::elapsedTimeInMillis() {
