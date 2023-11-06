@@ -3,7 +3,7 @@
 #include "Constants.h"
 #include "SDL.h"
 #include "math/Math.h"
-#include <iostream>
+#include "util/Logger.h"
 #include <vector>
 
 constexpr auto PLAYER_SPEED{ 6.0f };
@@ -23,10 +23,10 @@ void Scene::init() {
 	auto sprite = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
 	_texRepo.loadTexture(TextureIds::PLAYER_RUN);
 	_texRepo.loadTexture(TextureIds::PLAYER_JUMP);
-	_texRepo.loadTexture(TextureIds::PLAYER_FALL);
 
-	_registry.emplace<TransformComponent>(_player, 100.0f, 200.0f, 36.0f, 80.0f);
-	_registry.emplace<SpriteComponent>(_player, sprite, 128, 128);
+	_registry.emplace<TransformComponent>(_player, 50.0f, 200.0f, 40.0f, 56.0f);
+	_registry.emplace<SpriteComponent>(_player, sprite, 32, 32, 2)
+		.offset = { 6, 4 };
 	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
 	_registry.emplace<VelocityComponent>(_player);
 	_registry.emplace<GravityComponent>(_player);
@@ -37,13 +37,20 @@ void Scene::init() {
 	_registry.emplace<SpriteComponent>(_background, bg, 2304, 1296);
 
 	auto platformTex = _texRepo.loadTexture(TextureIds::TILE);
-	int numTiles = constants::WINDOW_WIDTH / TILE_SIZE;
-	for (int i = 0; i < numTiles; ++i) {
-		auto floor = _registry.create();
-		_registry.emplace<TransformComponent>(floor, TILE_SIZE * i, constants::WINDOW_HEIGHT - TILE_SIZE, TILE_SIZE, TILE_SIZE);
-		_registry.emplace<SpriteComponent>(floor, platformTex, 32, 32);
-		_registry.emplace<WallComponent>(floor);
-		_registry.emplace<TagComponent>(floor, "Floor");
+	auto redPlatform = _texRepo.loadTexture(TextureIds::RED_TILE);
+	for (int i = 0; i < 30; ++i) {
+		auto platform = _registry.create();
+		_registry.emplace<TransformComponent>(platform, TILE_SIZE * (i % 3), constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
+		_registry.emplace<SpriteComponent>(platform, i > 26 ? redPlatform : platformTex, 32, 32);
+		_registry.emplace<WallComponent>(platform);
+		_registry.emplace<TagComponent>(platform, "Platform");
+	}
+	for (int i = 0; i < 30; ++i) {
+		auto platform = _registry.create();
+		_registry.emplace<TransformComponent>(platform, constants::WINDOW_WIDTH - TILE_SIZE * (i % 3 + 1), constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
+		_registry.emplace<SpriteComponent>(platform, i > 26 ? redPlatform : platformTex, 32, 32);
+		_registry.emplace<WallComponent>(platform);
+		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 
 	auto lWall = _registry.create();
@@ -54,14 +61,6 @@ void Scene::init() {
 	_registry.emplace<TransformComponent>(rWall, constants::WINDOW_WIDTH, 0.0f, 1.0f, constants::WINDOW_HEIGHT);
 	_registry.emplace<WallComponent>(rWall);
 	_registry.emplace<TagComponent>(rWall, "Right Wall");
-
-	for (int i = 0; i < 5; ++i) {
-		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, 200.0f + TILE_SIZE * i, constants::WINDOW_HEIGHT - 164, TILE_SIZE, TILE_SIZE);
-		_registry.emplace<SpriteComponent>(platform, platformTex, 32, 32);
-		_registry.emplace<WallComponent>(platform);
-		_registry.emplace<TagComponent>(platform, "Platform");
-	}
 }
 
 void Scene::update() {
@@ -90,32 +89,32 @@ void Scene::updatePlayer() {
 	if (_pControl.isOnGround()) {
 		if (currMovement != 0) {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_RUN);
-			sprite.offset = { 32, 48 };
+			//sprite.offset = { 32, 48 };
 			sprite.flipHorizontal = currMovement < 0;
-			animation.wavelength = ANIMATION_PERIOD * 8;
+			animation.wavelength = ANIMATION_PERIOD * 6;
 		}
 		else {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
-			sprite.offset = { 46, 48 };
-			animation.wavelength = ANIMATION_PERIOD * 6;
+			animation.wavelength = ANIMATION_PERIOD * 4;
 		}
 
 		if (_pControl.isJumping()) {
 			velo.vector.y = -JUMP_SPEED;
+
+			animation.current = 0;
+			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
+			if (currMovement != 0) {
+				sprite.flipHorizontal = currMovement < 0;
+			}
+			animation.wavelength = ANIMATION_PERIOD * 8;
 		}
 	}
 	else {
-		if (velo.vector.y > 0) {
-			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_FALL);
-		}
-		else {
-			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
-		}
-		sprite.offset = { 44, 48 };
+		sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
 		if (currMovement != 0) {
 			sprite.flipHorizontal = currMovement < 0;
 		}
-		animation.wavelength = 1;
+		animation.wavelength = ANIMATION_PERIOD * 8;
 	}
 }
 
@@ -144,6 +143,7 @@ void Scene::updateCollisions() {
 	struct Collision {
 		entt::entity entity;
 		float contactTime;
+		bool isDiagonal;
 	};
 
 	std::vector<Collision> collisions;
@@ -153,12 +153,20 @@ void Scene::updateCollisions() {
 		Vector2Df contactNormal;
 		float contactTime;
 		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
-			collisions.push_back({entity, contactTime});
+			// only diagonal collision will have both x and y as non-zero
+			bool isDiagonal = static_cast<bool>(contactNormal.x * contactNormal.y);
+			collisions.push_back({entity, contactTime, isDiagonal});
 		}
 	}
 	std::sort(collisions.begin(), collisions.end(),
 		[](const Collision& a, const Collision& b) {
-			return a.contactTime < b.contactTime;
+			if (a.contactTime == b.contactTime) {
+				// resolve whichever is not diagonal first
+				return a.isDiagonal < b.isDiagonal;
+			}
+			else {
+				return a.contactTime < b.contactTime;
+			}
 		}
 	);
 
@@ -173,6 +181,9 @@ void Scene::updateCollisions() {
 		if (contactNormal.y < 0) {
 			onGround = true;
 		}
+		//if (contactNormal.x != 0) {
+		//	debug::log("contactNormal = %f, %f", contactNormal.x, contactNormal.y);
+		//}
 	}
 	_pControl.setOnGround(onGround);
 }
@@ -195,21 +206,18 @@ void Scene::updateSprites() {
 	auto& view = _registry.view<SpriteComponent, TransformComponent>();
 	for (auto entity : view) {
 		const auto& [transform, sprite] = view.get<TransformComponent, SpriteComponent>(entity);
-		float w = sprite.srcRect.size.x;
-		float h = sprite.srcRect.size.y;
+		const auto& size = sprite.srcRect.size;
 
 		// if flipped, need to find offset of other side of sprite pack
-		float offsetX = sprite.flipHorizontal ? sprite.srcRect.size.x - transform.rect.size.x - sprite.offset.x : sprite.offset.x;
+		float offsetX = sprite.flipHorizontal ? (size.x - sprite.offset.x) * sprite.scale - transform.rect.size.x : sprite.offset.x * sprite.scale;
 
 		SDL2::Rect dest = { static_cast<int>(transform.rect.pos.x - offsetX),
-			static_cast<int>(transform.rect.pos.y - sprite.offset.y),
-			static_cast<int>(w),
-			static_cast<int>(h) };
+			static_cast<int>(transform.rect.pos.y - sprite.offset.y * sprite.scale),
+			static_cast<int>(size.x * sprite.scale),
+			static_cast<int>(size.y * sprite.scale) };
 
-		//if (entity == _player)
-		//	std::cout << dest.y << std::endl;
 		const auto& srcPos = sprite.srcRect.pos;
-		SDL2::Rect src = { srcPos.x, srcPos.y, w, h };
+		SDL2::Rect src = { srcPos.x, srcPos.y, size.x, size.y };
 		SDL2::blit(_renderer, sprite.tex, src, dest, sprite.flipHorizontal);
 	}
 }

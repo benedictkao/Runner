@@ -5,16 +5,16 @@ namespace TextureIds {
 	constexpr auto PLAYER_IDLE = 1;
 	constexpr auto PLAYER_RUN = 2;
 	constexpr auto PLAYER_JUMP = 3;
-	constexpr auto PLAYER_FALL = 4;
-	constexpr auto TILE = 5;
+	constexpr auto TILE = 4;
+	constexpr auto RED_TILE = 5;
 
 	constexpr const char* PATHS[] = {
-		"../../../res/texture/background/4.png",
-		"../../../res/texture/sprite/Idle.png",
-		"../../../res/texture/sprite/Run.png",
-		"../../../res/texture/sprite/Jump4.png",
-		"../../../res/texture/sprite/Jump2.png",
-		"../../../res/texture/tile/Tile_03.png"
+		"../../../res/texture/background/Background.png",
+		"../../../res/texture/sprite/Pink_Monster_Idle_4.png",
+		"../../../res/texture/sprite/Pink_Monster_Run_6.png",
+		"../../../res/texture/sprite/Pink_Monster_Jump_8.png",
+		"../../../res/texture/tile/IndustrialTile_14.png",
+		"../../../res/texture/tile/IndustrialTile_09.png"
 	};
 
 	constexpr const char* getPath(unsigned int id) {

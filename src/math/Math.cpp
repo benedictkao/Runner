@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <utility>
+#include "../util/Logger.h"
 
 SDL2::Rect math::toSDLRect(const Rect2Df& srcRect) {
 	return { static_cast<int>(srcRect.pos.x),
@@ -38,7 +39,7 @@ bool math::rayVsRect(
 	if (contactTime2D.y > farContactTime2D.y) std::swap(contactTime2D.y, farContactTime2D.y);
 
 	// no collision
-	if (contactTime2D.x > farContactTime2D.y || contactTime2D.y > farContactTime2D.x) {
+	if (contactTime2D.x >= farContactTime2D.y || contactTime2D.y >= farContactTime2D.x) {
 		return false;
 	}
 
@@ -61,7 +62,9 @@ bool math::rayVsRect(
 		contactNormal = { direction.x < 0.0f ? 1.0f : -1.0f, 0.0f };
 	}
 	else if (direction.x != 0 && direction.y != 0) { // contact point and normal is at a diagonal
-		contactNormal = { M_SQRT2, M_SQRT2 };
+		float cx = direction.x < 0 ? 1.0f : -1.0f * static_cast<float>(M_SQRT2);
+		float cy = direction.y < 0 ? 1.0f : -1.0f * static_cast<float>(M_SQRT2);
+		contactNormal = { cx, cy };
 	}
 	else { // contact point is at a diagonal, but moving either up or down only, so there is effectively no collision
 		return false;
@@ -81,7 +84,10 @@ bool math::sweptRectVsRect(
 	Vector2Df center = { movingRect.pos + movingRect.size / 2 };
 	Rect2Df expanded = { target.pos - movingRect.size / 2, target.size + movingRect.size };
 
-	return rayVsRect(center, movement, expanded, contactPoint, contactNormal, contactTime);
+	//return rayVsRect(center, movement, expanded, contactPoint, contactNormal, contactTime);
+
+	bool result = rayVsRect(center, movement, expanded, contactPoint, contactNormal, contactTime);
+	return result;
 }
 
 Vector2Df math::resolveSweptRectVsRect(

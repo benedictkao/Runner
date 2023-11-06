@@ -17,9 +17,11 @@ struct SpriteComponent {
 	SDL2::Texture tex;
 	Rect2Df srcRect; // srcRect in the sprite pack
 	Vector2Df offset; // offset from hit box
+	float scale;
 	bool flipHorizontal;
 
 	SpriteComponent(SDL2::Texture, float w, float h);
+	SpriteComponent(SDL2::Texture, float w, float h, float scale);
 };
 
 struct AnimationComponent {
