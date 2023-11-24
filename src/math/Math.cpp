@@ -75,7 +75,7 @@ bool math::rayVsRect(
 
 bool math::sweptRectVsRect(
 	const Rect2Df& movingRect,
-	const Vector2Df& movement,
+	const Vector2Df& arrows,
 	const Rect2Df& target,
 	Vector2Df& contactPoint, 
 	Vector2Df& contactNormal, 
@@ -84,26 +84,26 @@ bool math::sweptRectVsRect(
 	Vector2Df center = { movingRect.pos + movingRect.size / 2 };
 	Rect2Df expanded = { target.pos - movingRect.size / 2, target.size + movingRect.size };
 
-	//return rayVsRect(center, movement, expanded, contactPoint, contactNormal, contactTime);
+	//return rayVsRect(center, arrows, expanded, contactPoint, contactNormal, contactTime);
 
-	bool result = rayVsRect(center, movement, expanded, contactPoint, contactNormal, contactTime);
+	bool result = rayVsRect(center, arrows, expanded, contactPoint, contactNormal, contactTime);
 	return result;
 }
 
 Vector2Df math::resolveSweptRectVsRect(
 	const Rect2Df& movingRect, 
-	Vector2Df& movement, 
+	Vector2Df& arrows, 
 	const Rect2Df& target
 ) {
 	Vector2Df contactPoint, contactNormal;
 	float contactTime;
-	bool hasCollision = sweptRectVsRect(movingRect, movement, target, contactPoint, contactNormal, contactTime);
+	bool hasCollision = sweptRectVsRect(movingRect, arrows, target, contactPoint, contactNormal, contactTime);
 	if (hasCollision) {
 		// take absolute speed since direction should come from contactNormal
-		Vector2Df speed = { std::abs(movement.x), std::abs(movement.y) };
+		Vector2Df speed = { std::abs(arrows.x), std::abs(arrows.y) };
 		float adjustmentMagnitude = 1 - contactTime;	// has to be <= 1
 		Vector2Df veloAdjustment = contactNormal * speed * adjustmentMagnitude;
-		movement += veloAdjustment;
+		arrows += veloAdjustment;
 	}
 	return contactNormal;
 }

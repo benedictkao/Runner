@@ -1,17 +1,17 @@
 #include "KeyboardHandler.h"
 
-KeyboardHandler::KeyboardHandler(PlayerState& pControl) : _pControl(pControl) {}
+#include "../math/Math.h"
 
-void KeyboardHandler::handleKeyDown(SDL2::Keycode code) {
+void KeyboardHandler::handleKeyDown(SDL2::Keycode code, InputState& state) {
 	switch (code) {
 	case SDLK_LEFT:
-		_pControl.moveLeft();
+		state.arrows.x = -1;
 		break;
 	case SDLK_RIGHT:
-		_pControl.moveRight();
+		state.arrows.x = 1;
 		break;
 	case SDLK_SPACE:
-		_pControl.setJumping(true);
+		state.arrows.y = 1;
 		break;
 
 		// not yet supported
@@ -23,16 +23,16 @@ void KeyboardHandler::handleKeyDown(SDL2::Keycode code) {
 	}
 }
 
-void KeyboardHandler::handleKeyUp(SDL2::Keycode code) {
+void KeyboardHandler::handleKeyUp(SDL2::Keycode code, InputState& state) {
 	switch (code) {
 	case SDLK_LEFT:
-		_pControl.stopMoveLeft();
+		math::coerceAtLeast(state.arrows.x, 0);
 		break;
 	case SDLK_RIGHT:
-		_pControl.stopMoveRight();
+		math::coerceAtMost(state.arrows.x, 0);
 		break;
 	case SDLK_SPACE:
-		_pControl.setJumping(false);
+		state.arrows.y = 0;
 		break;
 
 		// not yet supported

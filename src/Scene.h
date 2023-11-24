@@ -1,21 +1,21 @@
 #pragma once
 
 #include "SDL.h"
-#include "PlayerState.h"
+#include "PlayerManager.h"
 #include "TextureRepo.h"
 #include "../vendor/entt.hpp"
 
 class Scene {
 private:
 	SDL2::Renderer _renderer;
-	PlayerState& _pControl;
+	PlayerManager& _pManager;
 	TextureRepo& _texRepo;
 	entt::registry _registry;
 	entt::entity _player;
 	entt::entity _background;
 
 public:
-	Scene(SDL2::Renderer, PlayerState&, TextureRepo&);
+	Scene(SDL2::Renderer, PlayerManager&, TextureRepo&);
 
 	void init();
 	void update();

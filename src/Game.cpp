@@ -2,8 +2,8 @@
 
 #include "SDL.h"
 #include "math/Math.h"
-#include "PlayerState.h"
 #include "Scene.h"
+#include "PlayerManager.h"
 #include "util/Logger.h"
 #include "input/InputManager.h"
 
@@ -31,10 +31,10 @@ int Game::run() {
 
 	_running = true;
 
-	PlayerState pControl;
 	TextureRepo texRepo(_renderer);
-	MKInputManager inputManager(pControl);
-	Scene scene(_renderer, pControl, texRepo);
+	MKInputManager inputManager;
+	PlayerManager pManager(inputManager);
+	Scene scene(_renderer, pManager, texRepo);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 	SDL_SetCursor(cursor);
 	scene.init();

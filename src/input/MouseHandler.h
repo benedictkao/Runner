@@ -1,17 +1,16 @@
 #pragma once
 
-#include "../PlayerState.h"
 #include "../SDL.h"
 #include "../math/Geometry.h"
+#include "InputState.h"
 
 class MouseHandler {
 private:
-	PlayerState& _pState;
 	Vector2D _cursorPos;
 
 public:
-	MouseHandler(PlayerState&);
+	MouseHandler();
 
-	void handleMouseUp(SDL2::MouseEvent);
-	void handleMouseDown(SDL2::MouseEvent);
+	void handleMouseUp(SDL2::MouseEvent, InputState&);
+	void handleMouseDown(SDL2::MouseEvent, InputState&);
 };

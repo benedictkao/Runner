@@ -38,7 +38,7 @@ namespace math {
 
 	bool sweptRectVsRect(
 		const Rect2Df& movingRect,
-		const Vector2Df& movement,
+		const Vector2Df& arrows,
 		const Rect2Df& target,
 		Vector2Df& contactPoint,
 		Vector2Df& contactNormal,
@@ -47,7 +47,7 @@ namespace math {
 
 	Vector2Df resolveSweptRectVsRect(
 		const Rect2Df& movingRect,
-		Vector2Df& movement,
+		Vector2Df& arrows,
 		const Rect2Df& target
 	);
 }

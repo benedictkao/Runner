@@ -13,9 +13,9 @@ constexpr auto TILE_SIZE{ 32.0f };
 
 Scene::Scene(
 	SDL2::Renderer renderer,
-	PlayerState& pControl,
+	PlayerManager& pManager,
 	TextureRepo& texRepo
-) : _renderer(renderer), _pControl(pControl), _texRepo(texRepo) {}
+) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo) {}
 
 void Scene::init() {
 	_player = _registry.create();
@@ -39,17 +39,23 @@ void Scene::init() {
 	auto platformTex = _texRepo.loadTexture(TextureIds::TILE);
 	auto redPlatform = _texRepo.loadTexture(TextureIds::RED_TILE);
 	for (int i = 0; i < 30; ++i) {
+		int rem = i % 3;
+		bool topRow = i > 26;
 		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, TILE_SIZE * (i % 3), constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
-		_registry.emplace<SpriteComponent>(platform, i > 26 ? redPlatform : platformTex, 32, 32);
-		_registry.emplace<WallComponent>(platform);
+		_registry.emplace<TransformComponent>(platform, TILE_SIZE * rem, constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
+		_registry.emplace<SpriteComponent>(platform, topRow ? redPlatform : platformTex, 32, 32);
+		if (rem == 2 || topRow)
+			_registry.emplace<WallComponent>(platform);
 		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 	for (int i = 0; i < 30; ++i) {
+		int rem = i % 3;
+		bool topRow = i > 26;
 		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, constants::WINDOW_WIDTH - TILE_SIZE * (i % 3 + 1), constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
-		_registry.emplace<SpriteComponent>(platform, i > 26 ? redPlatform : platformTex, 32, 32);
-		_registry.emplace<WallComponent>(platform);
+		_registry.emplace<TransformComponent>(platform, constants::WINDOW_WIDTH - TILE_SIZE * (rem + 1), constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
+		_registry.emplace<SpriteComponent>(platform, topRow ? redPlatform : platformTex, 32, 32);
+		if (rem == 0 || topRow)
+			_registry.emplace<WallComponent>(platform);
 		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 
@@ -81,15 +87,15 @@ void Scene::updateBackground() {
 }
 
 void Scene::updatePlayer() {
+	_pManager.updatePlayerState();
 	auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
-	int currMovement = _pControl.getCurrentMovement();
+	int currMovement = _pManager.getPlayerState().movement.x;
 	auto& velo = _registry.get<VelocityComponent>(_player);
 	velo.vector.x = currMovement * PLAYER_SPEED;
 
-	if (_pControl.isOnGround()) {
+	if (_pManager.getPlayerState().onGround) {
 		if (currMovement != 0) {
 			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_RUN);
-			//sprite.offset = { 32, 48 };
 			sprite.flipHorizontal = currMovement < 0;
 			animation.wavelength = ANIMATION_PERIOD * 6;
 		}
@@ -98,7 +104,7 @@ void Scene::updatePlayer() {
 			animation.wavelength = ANIMATION_PERIOD * 4;
 		}
 
-		if (_pControl.isJumping()) {
+		if (_pManager.getPlayerState().movement.y > 0) {
 			velo.vector.y = -JUMP_SPEED;
 
 			animation.current = 0;
@@ -185,7 +191,7 @@ void Scene::updateCollisions() {
 		//	debug::log("contactNormal = %f, %f", contactNormal.x, contactNormal.y);
 		//}
 	}
-	_pControl.setOnGround(onGround);
+	_pManager.setPlayerOnGround(onGround);
 }
 
 void Scene::updateAnimations() {

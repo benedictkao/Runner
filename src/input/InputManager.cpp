@@ -7,20 +7,20 @@ bool MKInputManager::readInput() {
 	while (SDL2::pollEvent(&event)) {
 		switch (event.type) {
 
-			// mouse actions
+			// mouse _actions
 		case SDL_MOUSEBUTTONUP:
-			_mHandler.handleMouseUp(event.button);
+			_mHandler.handleMouseUp(event.button, _state);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			_mHandler.handleMouseDown(event.button);
+			_mHandler.handleMouseDown(event.button, _state);
 			break;
 
-			// keyboard actions
+			// keyboard _actions
 		case SDL_KEYDOWN:
-			_kHandler.handleKeyDown(event.key.keysym.sym);
+			_kHandler.handleKeyDown(event.key.keysym.sym, _state);
 			break;
 		case SDL_KEYUP:
-			_kHandler.handleKeyUp(event.key.keysym.sym);
+			_kHandler.handleKeyUp(event.key.keysym.sym, _state);
 			break;
 
 			// quit
@@ -33,4 +33,6 @@ bool MKInputManager::readInput() {
 	return true;
 }
 
-MKInputManager::MKInputManager(PlayerState& playerState) : _kHandler(playerState), _mHandler(playerState) {}
+const InputState& InputManager::getState() const {
+	return _state;
+}
