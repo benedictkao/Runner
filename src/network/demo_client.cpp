@@ -37,7 +37,7 @@ void connect(ENetHost* client) {
 	}
 }
 
-void read(ENetHost* client, std::promise<bool>& loginResult) 
+void readNetworkMsgs(ENetHost* client, std::promise<bool>& loginResult) 
 {
 	network::Buffer readBuffer;
 	ENetEvent event;
@@ -78,6 +78,8 @@ void read(ENetHost* client, std::promise<bool>& loginResult)
 				std::cout << "Disconnection succeeded." << std::endl;
 				//loginResult.set_value(false);
 				// TODO: break out of outer block and restart the read function with new promise
+				break;
+			default:
 				break;
 			}
 		}
@@ -140,7 +142,7 @@ int main(int argc, char* argv[])
 	connect(client);
 
 	std::promise<bool> loginResult;
-	std::thread read_thread(read, client, std::ref(loginResult));
+	std::thread read_thread(readNetworkMsgs, client, std::ref(loginResult));
 	network::Buffer writeBuffer;
 	std::string in;
 
@@ -178,6 +180,8 @@ int main(int argc, char* argv[])
 		case ENET_EVENT_TYPE_DISCONNECT:
 			std::cout << "Disconnection succeeded." << std::endl;
 			break;
+		default:
+		break;
 		}
 	}
 

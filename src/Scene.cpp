@@ -81,14 +81,14 @@ void Scene::update() {
 
 void Scene::updateBackground() {
 	auto& sprite = _registry.get<SpriteComponent>(_background);
-	SDL2::Rect src = { 0, 0, constants::WINDOW_WIDTH * 2, constants::WINDOW_HEIGHT * 2 };
-	SDL2::Rect dest = { 0, 0, constants::WINDOW_WIDTH, constants::WINDOW_HEIGHT };
+	SDL2::Rect src = { 0, 0, static_cast<int>(constants::WINDOW_WIDTH) * 2, static_cast<int>(constants::WINDOW_HEIGHT) * 2 };
+	SDL2::Rect dest = { 0, 0, static_cast<int>(constants::WINDOW_WIDTH), static_cast<int>(constants::WINDOW_HEIGHT) };
 	SDL2::blit(_renderer, sprite.tex, src, dest);
 }
 
 void Scene::updatePlayer() {
 	_pManager.updatePlayerState();
-	auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
+	const auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
 	int currMovement = _pManager.getPlayerState().movement.x;
 	auto& velo = _registry.get<VelocityComponent>(_player);
 	velo.vector.x = currMovement * PLAYER_SPEED;
@@ -125,15 +125,15 @@ void Scene::updatePlayer() {
 }
 
 void Scene::updateTransforms() {
-	auto& view = _registry.view<VelocityComponent, TransformComponent>();
+	const auto& view = _registry.view<VelocityComponent, TransformComponent>();
 	for (auto entity : view) {
-		auto& [velo, transform] = view.get(entity);
+		const auto& [velo, transform] = view.get(entity);
 		transform.rect.pos += velo.vector;
 	}
 }
 
 void Scene::updateVelocities() {
-	auto& view = _registry.view<VelocityComponent, GravityComponent>();
+	const auto& view = _registry.view<VelocityComponent, GravityComponent>();
 	for (auto entity : view) {
 		auto& velo = view.get<VelocityComponent>(entity);
 		velo.vector.y += constants::GRAVITY_ACCEL;
@@ -195,9 +195,9 @@ void Scene::updateCollisions() {
 }
 
 void Scene::updateAnimations() {
-	auto& view = _registry.view<AnimationComponent, SpriteComponent>();
+	const auto& view = _registry.view<AnimationComponent, SpriteComponent>();
 	for (auto entity : view) {
-		auto& [animation, sprite] = view.get(entity);
+		const auto& [animation, sprite] = view.get(entity);
 		if (animation.current >= animation.wavelength)
 			animation.current = 0;
 
@@ -209,7 +209,7 @@ void Scene::updateAnimations() {
 }
 
 void Scene::updateSprites() {
-	auto& view = _registry.view<SpriteComponent, TransformComponent>();
+	const auto& view = _registry.view<SpriteComponent, TransformComponent>();
 	for (auto entity : view) {
 		const auto& [transform, sprite] = view.get<TransformComponent, SpriteComponent>(entity);
 		const auto& size = sprite.srcRect.size;
@@ -223,7 +223,7 @@ void Scene::updateSprites() {
 			static_cast<int>(size.y * sprite.scale) };
 
 		const auto& srcPos = sprite.srcRect.pos;
-		SDL2::Rect src = { srcPos.x, srcPos.y, size.x, size.y };
+		SDL2::Rect src = { static_cast<int>(srcPos.x), static_cast<int>(srcPos.y), static_cast<int>(size.x), static_cast<int>(size.y) };
 		SDL2::blit(_renderer, sprite.tex, src, dest, sprite.flipHorizontal);
 	}
 }

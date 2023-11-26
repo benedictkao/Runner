@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 	while (true) 
 	{
 		ENetEvent event;
-		while (enet_host_service(server, &event, 0) > 0) // check data with no delay in between
+		while (enet_host_service(server, &event, 50) > 0) // check data 50ms delay
 		{
 			switch (event.type)
 			{
@@ -90,6 +90,8 @@ int main(int argc, char* argv[])
 				std::cout << event.peer->address.host << ':' << event.peer->address.port << " disconnected." << std::endl;
 				event.peer->data = NULL;	// clean up the data
 			}
+			break;
+			default:
 			break;
 			}
 		}
