@@ -27,10 +27,10 @@ add_executable(main
 	"src/input/InputState.cpp")
 target_link_libraries(main SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer) # SDL2main runs SDL2main function which then calls this source main
 
-add_executable(demo_client "src/network/demo_client.cpp" "src/network/buffer.cpp")
+add_executable(demo_client "src/network/demo_client.cpp" "src/network/buffer.cpp" "src/network/connection_handler.cpp")
 target_include_directories(demo_client PRIVATE ${ENET_DIR}/include)
 
-add_executable(demo_server "src/network/demo_server.cpp" "src/network/buffer.cpp")
+add_executable(demo_server "src/network/demo_server.cpp" "src/network/buffer.cpp" "src/network/connection_handler.cpp")
 target_include_directories(demo_server PRIVATE ${ENET_DIR}/include)
 
 if(WIN32)
