@@ -1,10 +1,28 @@
 #include "buffer.h"
 
-static constexpr auto BUFFER_SIZE{ 128 };
+#include <utility>
 
-network::Buffer::Buffer()
+network::Buffer::Buffer() {}
+
+network::Buffer::Buffer(int initialCapacity)
 {
-	_internalBuffer.reserve(BUFFER_SIZE);
+	_internalBuffer.reserve(initialCapacity);
+}
+
+network::Buffer::Buffer(const Buffer & buffer): _internalBuffer(buffer._internalBuffer) {}
+
+network::Buffer::Buffer(Buffer && buffer) noexcept: _internalBuffer(std::move(buffer._internalBuffer)) {}
+
+network::Buffer& network::Buffer::operator=(const Buffer& buffer)
+{
+	_internalBuffer = buffer._internalBuffer;
+	return *this;
+}
+
+network::Buffer& network::Buffer::operator=(Buffer&& buffer) noexcept
+{
+	_internalBuffer = std::move(buffer._internalBuffer);
+	return *this;
 }
 
 void network::Buffer::fill(const void* data, size_t size)

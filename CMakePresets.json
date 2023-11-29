@@ -90,33 +90,58 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
-      }
+        }
     ],
     "buildPresets": [
         {
             "name": "clang-debug-BuildAll",
-            "description": "Build all targets",
+            "description": "Build all targets in debug",
             "targets": [
-              "all"
+                "all"
             ],
             "configurePreset": "clang-debug"
         },
         {
             "name": "clang-debug-NetworkDemo",
-            "description": "Build network client demo target",
+            "description": "Build network client demo target in debug",
             "targets": [
-              "demo_client",
-              "demo_server"
+                "demo_client",
+                "demo_server"
             ],
             "configurePreset": "clang-debug"
         },
         {
-          "name": "clang-debug-Runner",
-          "description": "Build Runner game target",
-          "targets": [
-            "main"
-          ],
-          "configurePreset": "clang-debug"
-      }
+            "name": "clang-debug-Runner",
+            "description": "Build Runner game target in debug",
+            "targets": [
+                "main"
+            ],
+            "configurePreset": "clang-debug"
+        },
+        {
+            "name": "clang-release-BuildAll",
+            "description": "Build all targets in release",
+            "targets": [
+                "all"
+            ],
+            "configurePreset": "clang-release"
+        },
+        {
+            "name": "clang-release-NetworkDemo",
+            "description": "Build network client demo target in release",
+            "targets": [
+                "demo_client",
+                "demo_server"
+            ],
+            "configurePreset": "clang-release"
+        },
+        {
+            "name": "clang-release-Runner",
+            "description": "Build Runner game target in release",
+            "targets": [
+                "main"
+            ],
+            "configurePreset": "clang-release"
+        }
     ]
 }

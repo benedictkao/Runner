@@ -1,6 +1,7 @@
 #include "connection_handler.h"
 
 #include <iostream>
+#include <utility>
 
 network::Host::Host(ENetAddress* address, int maxConnections, int numChannels, int inBandwidth, int outBandwidth)
 {
@@ -35,14 +36,28 @@ ENetHost * network::Host::getHost() const
 	return _host;
 }
 
-network::ConnectionHandler::ConnectionHandler(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server), _state(ConnectionState::DISCONNECTED) {}
+network::Connection::Connection(): _state(State::DISCONNECTED) {}
 
-bool network::ConnectionHandler::connect(int timeout)
+network::Connection::State network::Connection::getState()
 {
-	if (getState() != ConnectionState::DISCONNECTED)
+	std::lock_guard lg(_mux);
+	return _state;
+}
+
+void network::Connection::setState(State state)
+{
+	std::lock_guard lg(_mux);
+	_state = state;
+}
+
+network::ConnectionManager::ConnectionManager(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
+
+bool network::ConnectionManager::connect(int timeout)
+{
+	if (_connection.getState() != Connection::State::DISCONNECTED)
 		return false;
 	
-	setState(ConnectionState::CONNECTING);
+	_connection.setState(Connection::State::CONNECTING);
 	std::cout << "[ConnectionHandler] Attempting new connection to " << _serverAddress.host << ':' << _serverAddress.port << "..." << std::endl;
 
 	if (_server)
@@ -56,7 +71,7 @@ bool network::ConnectionHandler::connect(int timeout)
 	if (_server == NULL) 
 	{
 		std::cout << "[ConnectionHandler] Connection failed, no available peers for initiating an ENet connection." << std::endl;
-		setState(ConnectionState::DISCONNECTED);
+		_connection.setState(Connection::State::DISCONNECTED);
 		return false;
 	}
 
@@ -68,14 +83,14 @@ bool network::ConnectionHandler::connect(int timeout)
 	disconnect();
 	
 	std::cout << "[ConnectionHandler] Disconnected from server" << std::endl;
-	setState(ConnectionState::DISCONNECTED);
+	_connection.setState(Connection::State::DISCONNECTED);
 	return true;
 }
 
-void network::ConnectionHandler::disconnect()
+void network::ConnectionManager::disconnect()
 {
 	std::cout << "[ConnectionHandler] Manually disconnecting..." << std::endl;
-	setState(ConnectionState::DISCONNECTING);
+	_connection.setState(Connection::State::DISCONNECTING);
 	enet_peer_disconnect(
 		_server,
 		0		// data to send on disconnect, nothing for now
@@ -85,73 +100,46 @@ void network::ConnectionHandler::disconnect()
 	// If it is not, then it will still be updated after timeout anyway
 }
 
-network::ConnectionState network::ConnectionHandler::getState()
+mux_queue<network::Buffer>& network::ConnectionManager::getInQueue()
 {
-	std::lock_guard lg(_mux);
-	return _state;
+	return _readQueue;
 }
 
-void network::ConnectionHandler::setState(ConnectionState state)
-{
-	std::lock_guard lg(_mux);
-	_state = state;
-}
-
-void network::ConnectionHandler::readEvents(int timeout)
+void network::ConnectionManager::readEvents(int timeout)
 {
 	while (ENetEvent* event = _client.read(timeout))
 	{
-		network::Buffer readBuffer;
 		switch (event->type) 
 		{
 			case ENET_EVENT_TYPE_CONNECT:
 				std::cout << "[ConnectionHandler] Connected to server!" << std::endl;
-				setState(ConnectionState::CONNECTED);
+				_connection.setState(Connection::State::CONNECTED);
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
-				if (getState() != ConnectionState::CONNECTED) 
+				if (!isConnected()) 
 				{
 					enet_packet_destroy(event->packet);
 					break;
 				}
-
-				// TODO: abstract this to another class
+				network::Buffer readBuffer;
 				readBuffer.fill(event->packet->data, event->packet->dataLength);
-				messages::Type type;
-				readBuffer.read<messages::Type>(type);
-				switch (type) {
-				case messages::Type::LOGIN:
-				{
-					ENetPeer* id;
-					readBuffer.read<ENetPeer*>(id);
-					std::cout << "You are connected to the server! Your id is " << id << "\n++++++++++++++" << std::endl;
-				}
-					break;
-				case messages::Type::CHAT_MSG:
-				{
-					messages::body::ChatMsg msg;
-					readBuffer.read<messages::body::ChatMsg>(msg);
-					std::cout << msg.sender << ": " << msg.message << std::endl;
-				}
-				break;
-				default:
-				{
-					auto data = readBuffer.data();
-					std::cout << "Unknown message received: " << data;
-				}
-				break;
-				}
+				_readQueue.push(std::move(readBuffer));
 			}
 				break;
 			case ENET_EVENT_TYPE_DISCONNECT: 
 			{
 				std::cout << "[ConnectionHandler] Disconnected from server" << std::endl;
-				setState(ConnectionState::DISCONNECTED);
+				_connection.setState(Connection::State::DISCONNECTED);
 				return;
 			}
 			default:
 				break;
 		}
 	}
+}
+
+bool network::ConnectionManager::isConnected()
+{
+	return _connection.getState() == Connection::State::CONNECTED;
 }

@@ -10,6 +10,13 @@ namespace network {
 
 	public:
 		Buffer();
+		Buffer(int initialCapacity);
+
+		Buffer(const Buffer&);
+		Buffer(Buffer&&) noexcept;
+
+		Buffer& operator=(const Buffer&);
+		Buffer& operator=(Buffer&&) noexcept;
 
 	public:
 		template <typename T>
@@ -27,10 +34,13 @@ namespace network {
 		void read(T& data)
 		{
 			static_assert(std::is_standard_layout<T>::value, "Data is too complex");
-
 			size_t currSize = _internalBuffer.size();
 			size_t readSize = sizeof(T);
 			size_t newSize = currSize - readSize;
+
+			// if (newSize < 0)
+			// 	return;
+				
 			std::memcpy(&data, _internalBuffer.data() + newSize, readSize);
 			_internalBuffer.resize(newSize);
 		}
