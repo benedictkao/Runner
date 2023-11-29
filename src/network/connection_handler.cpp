@@ -76,15 +76,11 @@ bool network::ConnectionManager::connect(int timeout)
 	}
 
 	// this is a blocking call, and should not return unless connection is broken
-	readEvents(timeout);
+	bool expected = readEvents(timeout);
 
-	// no data received within timeout interval, treat it as if it's disconnected
-	std::cout << "[ConnectionHandler] Connection timed out!" << std::endl;
-	disconnect();
-	
-	std::cout << "[ConnectionHandler] Disconnected from server" << std::endl;
-	_connection.setState(Connection::State::DISCONNECTED);
-	return true;
+	if (!expected)
+		resetConnection();
+	return expected;
 }
 
 void network::ConnectionManager::disconnect()
@@ -105,36 +101,49 @@ mux_queue<network::Buffer>& network::ConnectionManager::getInQueue()
 	return _readQueue;
 }
 
-void network::ConnectionManager::readEvents(int timeout)
+bool network::ConnectionManager::readEvents(int timeout)
 {
-	while (ENetEvent* event = _client.read(timeout))
+	auto lastUpdated = network::currentTime();
+	while (true)
 	{
-		switch (event->type) 
+		auto now = network::currentTime();
+		auto timeSinceLastMsg = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdated);
+		if (timeSinceLastMsg >= std::chrono::milliseconds(timeout))
 		{
-			case ENET_EVENT_TYPE_CONNECT:
-				std::cout << "[ConnectionHandler] Connected to server!" << std::endl;
-				_connection.setState(Connection::State::CONNECTED);
-				break;
-			case ENET_EVENT_TYPE_RECEIVE:
+			std::cout << "[ConnectionHandler] Connection timed out!" << std::endl;
+			return false;
+		}
+
+		while (ENetEvent* event = _client.read(20))	// read with up to 20ms delay
+		{
+			switch (event->type) 
 			{
-				if (!isConnected()) 
-				{
-					enet_packet_destroy(event->packet);
+				case ENET_EVENT_TYPE_CONNECT:
+					std::cout << "[ConnectionHandler] Connected to server!" << std::endl;
+					_connection.setState(Connection::State::CONNECTED);
 					break;
+				case ENET_EVENT_TYPE_RECEIVE:
+				{
+					// if (!isConnected()) 
+					// {
+					// 	enet_packet_destroy(event->packet);
+					// 	return;
+					// }
+					lastUpdated = network::currentTime();
+					network::Buffer readBuffer;
+					readBuffer.fill(event->packet->data, event->packet->dataLength);
+					_readQueue.push(std::move(readBuffer));
 				}
-				network::Buffer readBuffer;
-				readBuffer.fill(event->packet->data, event->packet->dataLength);
-				_readQueue.push(std::move(readBuffer));
+					break;
+				case ENET_EVENT_TYPE_DISCONNECT: 
+				{
+					std::cout << "[ConnectionHandler] Disconnected from server" << std::endl;
+					resetConnection();
+					return true;
+				}
+				default:
+					break;
 			}
-				break;
-			case ENET_EVENT_TYPE_DISCONNECT: 
-			{
-				std::cout << "[ConnectionHandler] Disconnected from server" << std::endl;
-				_connection.setState(Connection::State::DISCONNECTED);
-				return;
-			}
-			default:
-				break;
 		}
 	}
 }
@@ -142,4 +151,11 @@ void network::ConnectionManager::readEvents(int timeout)
 bool network::ConnectionManager::isConnected()
 {
 	return _connection.getState() == Connection::State::CONNECTED;
+}
+
+void network::ConnectionManager::resetConnection()
+{
+	enet_peer_reset(_server);
+	_connection.setState(Connection::State::DISCONNECTED);
+	std::cout << "[ConnectionHandler] Connection reset" << std::endl;
 }

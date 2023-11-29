@@ -16,11 +16,12 @@ namespace network
 		constexpr auto INF = 0;
 	}
 
-	typedef std::chrono::steady_clock::time_point TimeUnit;
+	typedef std::chrono::steady_clock clock;
+	typedef clock::time_point TimeUnit;
 
 	inline TimeUnit currentTime()
 	{
-		return std::chrono::steady_clock::now();
+		return clock::now();
 	}
 
 	/*
@@ -120,18 +121,20 @@ namespace network
 		void send()
 		{
 			ENetPacket* packet = _parser.createPacket<type>();
+			enet_peer_send(_server, 0, packet);
 
-			int result = -1;
-			while (result < 0)
-			{
-				// it's possible for failure due to old or nullptr _server being read, in that case new _server will be fetched in next iteration and sent properly
-				if (!isConnected()) {
-					std::cout << "[ConnectionHandler] Message didn't send because state was disconnected" << std::endl;
-					enet_packet_destroy(packet);
-					return;
-				}
-				result = enet_peer_send(_server, 0, packet);		
-			}
+			// RETRY BEHAVIOUR
+			// int result = -1;
+			// while (result < 0)
+			// {
+			// 	// it's possible for failure due to old or nullptr _server being read, in that case new _server will be fetched in next iteration and sent properly
+			// 	if (!isConnected()) {
+			// 		std::cout << "[ConnectionHandler] Message didn't send because state was disconnected" << std::endl;
+			// 		enet_packet_destroy(packet);
+			// 		return;
+			// 	}
+			// 	result = enet_peer_send(_server, 0, packet);		
+			// }
 		}
 
 		// TODO: abstract this to other class
@@ -139,22 +142,25 @@ namespace network
 		void send(const T& body)
 		{
 			ENetPacket* packet = _parser.createPacket<type, T>(body);
+			enet_peer_send(_server, 0, packet);
 
-			int result = -1;
-			while (result < 0)
-			{
-				// it's possible for failure due to old or nullptr _server being read, in that case new _server will be fetched in next iteration and sent properly
-				if (!isConnected()) {
-					std::cout << "[ConnectionHandler] Message didn't send because state was disconnected" << std::endl;
-					enet_packet_destroy(packet);
-					return;
-				}
-				result = enet_peer_send(_server, 0, packet);		
-			}
+			// RETRY BEHAVIOUR
+			// int result = -1;
+			// while (result < 0)
+			// {
+			// 	// it's possible for failure due to old or nullptr _server being read, in that case new _server will be fetched in next iteration and sent properly
+			// 	if (!isConnected()) {
+			// 		std::cout << "[ConnectionHandler] Message didn't send because state was disconnected" << std::endl;
+			// 		enet_packet_destroy(packet);
+			// 		return;
+			// 	}
+			// 	result = enet_peer_send(_server, 0, packet);		
+			// }
 		}
 
 	private:
-		void readEvents(int timeout);
+		bool readEvents(int timeout);
+		void resetConnection();
 
 	private:
 		Host _client;

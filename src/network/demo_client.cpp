@@ -11,7 +11,7 @@
 #include "messages.h"
 
 static constexpr auto HOST_NAME{ "127.0.0.1" };
-static constexpr auto TIMEOUT{ 7000 };
+static constexpr auto TIMEOUT{ 10000 };
 static constexpr auto PORT{ 7777 };
 
 int id = -1;
