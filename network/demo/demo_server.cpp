@@ -5,8 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "connection.h"
-#include "connection_handler.h"
+#include "demo_messages.h"
+#include "common/network.h"
 
 static constexpr int MAX_NUM_CLIENTS{ 32 };
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 	// GAME LOOP START
 
 	network::Buffer readBuffer(128);
-	network::Buffer writeBuffer(128);
+	network::MessageService<messages::Type> msgService;
 	while (true) 
 	{
 		while (ENetEvent* event = server.read(20))
@@ -92,11 +92,11 @@ int main(int argc, char* argv[])
 				int id = availableIds.front();
 				availableIds.pop();
 				{
-					std::lock_guard lg(mux);
+					//std::lock_guard lg(mux);
 					clients[event->peer] = { id, network::currentTime() };
 				}
 				std::cout << "A new client connected from " << event->peer->address.host << ':' << event->peer->address.port << ", assigned id " << id << std::endl;
-				sendMessage<messages::Type::LOGIN>(event->peer, writeBuffer, id);
+				msgService.send<messages::Type::LOGIN>(event->peer, id);
 			}
 			break;
 			case ENET_EVENT_TYPE_RECEIVE:
@@ -113,6 +113,7 @@ int main(int argc, char* argv[])
 				}
 				else if (type == messages::Type::CHAT_MSG)
 				{
+					//std::lock_guard lg(mux);
 					for (const auto pair : clients) {
 						if (pair.first == event->peer) {
 							continue;
@@ -126,7 +127,7 @@ int main(int argc, char* argv[])
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				{
-					std::lock_guard lg(mux);
+					//std::lock_guard lg(mux);
 					clients.erase(event->peer);
 				}
 				std::cout << event->peer->address.host << ':' << event->peer->address.port << " disconnected." << std::endl;

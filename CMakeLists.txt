@@ -1,42 +1,55 @@
 cmake_minimum_required(VERSION 3.5)
 
-project (TestGame LANGUAGES CXX)
+project (Runner LANGUAGES CXX)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
-set(ENET_DIR ${PROJECT_SOURCE_DIR}/vendor/enet)
+## Network library, this can be put into separate file like FindNetwork.cmake
+
+set(ENET_DIR ${PROJECT_SOURCE_DIR}/network/vendor/enet)
+
+add_library(network STATIC)
+target_sources(network PRIVATE "network/src/buffer.cpp" "network/src/network.cpp")
+target_include_directories(network 
+	PUBLIC 
+		"${ENET_DIR}/include"
+		"${PROJECT_SOURCE_DIR}/network/include"
+	PRIVATE 
+		"${PROJECT_SOURCE_DIR}/network/src"
+)
+if(WIN32)
+	target_link_libraries(network PRIVATE WS2_32 WINMM ${ENET_DIR}/enet64.lib)
+else()
+	target_link_libraries(network PRIVATE /usr/local/lib/libenet.dylib) # fixme: add FindENet.cmake to automate this
+endif()
+
+## Network demo executables
+
+add_executable(demo_client "network/demo/demo_client.cpp")
+target_link_libraries(demo_client PRIVATE network)
+
+add_executable(demo_server "network/demo/demo_server.cpp")
+target_link_libraries(demo_server PRIVATE network)
+
+## Game executable
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
 add_executable(main 
-	"src/main.cpp" 
-	"src/SDL.cpp" 
-	"src/Game.cpp" 
-	"src/Scene.cpp"
-	"src/Components.cpp" 
-	"src/input/KeyboardHandler.cpp"
-	"src/TextureRepo.cpp"
-	"src/math/Geometry.cpp"
-	"src/math/Math.cpp"
-	"src/input/InputManager.cpp"
-	"src/input/MouseHandler.cpp"
-	"src/PlayerManager.cpp"
-	"src/input/InputState.cpp")
+	"game/src/main.cpp" 
+	"game/src/SDL.cpp" 
+	"game/src/Game.cpp" 
+	"game/src/Scene.cpp"
+	"game/src/Components.cpp" 
+	"game/src/input/KeyboardHandler.cpp"
+	"game/src/TextureRepo.cpp"
+	"game/src/math/Geometry.cpp"
+	"game/src/math/Math.cpp"
+	"game/src/input/InputManager.cpp"
+	"game/src/input/MouseHandler.cpp"
+	"game/src/PlayerManager.cpp"
+	"game/src/input/InputState.cpp")
 target_link_libraries(main SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer) # SDL2main runs SDL2main function which then calls this source main
-
-add_executable(demo_client "src/network/demo_client.cpp" "src/network/buffer.cpp" "src/network/connection_handler.cpp")
-target_include_directories(demo_client PRIVATE ${ENET_DIR}/include)
-
-add_executable(demo_server "src/network/demo_server.cpp" "src/network/buffer.cpp" "src/network/connection_handler.cpp")
-target_include_directories(demo_server PRIVATE ${ENET_DIR}/include)
-
-if(WIN32)
-	target_link_libraries(demo_client PRIVATE WS2_32 WINMM ${ENET_DIR}/enet64.lib)
-	target_link_libraries(demo_server PRIVATE WS2_32 WINMM ${ENET_DIR}/enet64.lib)
-else()
-	target_link_libraries(demo_client PRIVATE /usr/local/lib/libenet.dylib) # fixme: add FindENet.cmake to automate this
-	target_link_libraries(demo_server PRIVATE /usr/local/lib/libenet.dylib) # fixme: add FindENet.cmake to automate this
-endif()

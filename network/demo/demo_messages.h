@@ -1,24 +1,17 @@
 #pragma once
 
-namespace messages 
+#include <stdint.h>
+
+namespace messages
 {
 	enum class Type : uint32_t
 	{
 		PING, LOGIN, CHAT_MSG
 	};
 
-	namespace body 
+	namespace body
 	{
-		struct Ping
-		{
-			// void test() {
-			// 	auto t = std::chrono::system_clock::now().time_since_epoch();
-			// 	uint64_t t2 = std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
-			// }
-			uint64_t timeInMillis;
-		};
-
-		struct Login 
+		struct Login
 		{
 			int id;
 		};
@@ -44,5 +37,4 @@ namespace messages
 	// define typed messages here
 	typedef TypedMessage<Type::LOGIN, body::Login> LoginData;
 	typedef TypedMessage<Type::CHAT_MSG, body::ChatMsg> ChatMsgData;
-	typedef TypedMessage<Type::PING, body::Ping> PingData;
 }

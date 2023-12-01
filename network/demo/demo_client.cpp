@@ -2,42 +2,55 @@
 
 #include <thread>
 #include <string>
-#include <string_view>
-#include <mutex>
-#include <future>
 
-#include "connection.h"
-#include "connection_handler.h"
-#include "messages.h"
+#include "network/Client.h"
+#include "demo_messages.h"
 
 static constexpr auto HOST_NAME{ "127.0.0.1" };
 static constexpr auto TIMEOUT{ 10000 };
 static constexpr auto PORT{ 7777 };
 
 int id = -1;
+bool quit = false;
 network::TimeUnit lastPing;
 
-void stayConnected(network::ConnectionManager& connection) 
+void stayConnected(network::Client<messages::Type>& connection) 
 {
-	while (true)
+	while (!quit)
 	{
 		bool expectedDisconnect = connection.connect(TIMEOUT);
-		if (!expectedDisconnect)
+		if (expectedDisconnect)
+		{
+			std::cout << "[main] Connection ended" << std::endl;
+			return;
+		}
+		else
+		{
 			// unnatural disconnection, wait awhile before trying again
+			std::cout << "[main] Retrying connection in 5s" << std::endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+		}
 	}
 }
 
-void sendChatMsg(network::ConnectionManager& connection)
+void sendChatMsg(network::Client<messages::Type>& connection)
 {
 	std::string in;
-	while (true)
+	while (!quit)
 	{
 		std::getline(std::cin, in);
 		messages::body::ChatMsg message;
 		message.id = id;	// this is not thread-safe so might not get most updated value, but  it's ok
 		std::strcpy(message.message, in.c_str());
-		connection.send<messages::Type::CHAT_MSG, messages::body::ChatMsg>(message);
+		if (in.empty())
+		{
+			quit = true;
+			connection.disconnect();
+		}
+		else
+		{			
+			connection.send<messages::Type::CHAT_MSG, messages::body::ChatMsg>(message);
+		}
 	}
 }
 
@@ -60,11 +73,11 @@ int main(int argc, char* argv[])
 	// set host to connect to
 	enet_address_set_host(&address, HOST_NAME);
 	address.port = PORT;
-	network::ConnectionManager connection(address);
+	network::Client<messages::Type> connection(address);
 
 	std::thread read_thread(stayConnected, std::ref(connection));
 	std::thread ping_thread([&]() {
-		while (true)
+		while (!quit)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(5));
 			if (connection.isConnected())
@@ -79,7 +92,7 @@ int main(int argc, char* argv[])
 
 	// GAME LOOP START
 
-	while (true)
+	while (!quit)
 	{
 		auto& inQueue = connection.getInQueue();
 		auto numMsgs = inQueue.size();
@@ -126,10 +139,11 @@ int main(int argc, char* argv[])
 	// GAME LOOP END
 
 	read_thread.join();
+	std::cout << "read thread join" << std::endl;
 	ping_thread.join();
+	std::cout << "ping thread join" << std::endl;
 	write_thread.join();
-
-	connection.disconnect();
+	std::cout << "write thread join" << std::endl;
 
 	return EXIT_SUCCESS;
 }
