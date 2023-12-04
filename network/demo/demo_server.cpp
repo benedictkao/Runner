@@ -2,7 +2,7 @@
 #include <thread>
 
 #include "demo_messages.h"
-#include "network/network.h"
+
 #include "network/Server.h"
 
 static constexpr int MAX_NUM_CLIENTS{ 32 };
@@ -30,12 +30,11 @@ int main(int argc, char* argv[])
 		server.run(20);
 	});
 
-	network::MessageService<messages::Type> msgService;
-
 	// GAME LOOP START
 	
 	auto& inQueue = server.getInQueue();
 	auto& clients = server.getClients();
+	network::BufferWriter<messages::Type> writer;
 	while (true)
 	{
 		auto numMsgs = inQueue.size();
@@ -48,7 +47,8 @@ int main(int argc, char* argv[])
 			case messages::Type::PING:
 			{
 				std::cout << "[main] Ping received from " << inMsg.source << ", returning pong" << std::endl;
-				msgService.send<messages::Type::PING>(inMsg.source);
+				auto& buffer = writer.writeToBuffer<messages::Type::PING>();
+				server.send(inMsg.source, buffer);
 			}
 			break;
 			case messages::Type::CHAT_MSG:
@@ -61,7 +61,8 @@ int main(int argc, char* argv[])
 				{
 					if (client == inMsg.source)
 						continue;
-					msgService.send<messages::Type::CHAT_MSG>(client, msg);
+					auto& buffer = writer.writeToBuffer<messages::Type::CHAT_MSG>(msg);
+					server.send(client, buffer);
 				}
 			}
 			break;

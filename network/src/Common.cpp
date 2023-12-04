@@ -1,4 +1,6 @@
-#include "network/network.h"
+#include "network/Common.h"
+
+#include <iostream>
 
 network::Host::Host(ENetAddress* address, int maxConnections, int numChannels, int inBandwidth, int outBandwidth)
 {

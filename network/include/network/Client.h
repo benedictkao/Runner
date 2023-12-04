@@ -3,7 +3,7 @@
 #include <enet/enet.h>
 #include "EventReader.h"
 #include "ConcurrentQueue.h"
-#include "network.h"
+#include "Common.h"
 
 namespace network
 {
@@ -13,7 +13,6 @@ namespace network
 		constexpr int DEFAULT_READ_INTERVAL { 20 };
 	}
 
-	template <typename _MsgType>
 	class Client
 	{
 	public:
@@ -40,11 +39,7 @@ namespace network
 		ENetHost* getHost() const;
 
 	public:
-		template <_MsgType type>
-		void send();
-
-		template <_MsgType type, typename _MsgBody>
-		void send(const _MsgBody& body);
+		void send(const Buffer&);
 
 	private:
 		void readEvents(int timeout, int interval);
@@ -55,9 +50,7 @@ namespace network
 		ENetPeer* _server;
 		ENetAddress _serverAddress;
 		Connection _connection;
-		MessageService<_MsgType> _msgService;
+		MessageService _msgService;
 		InputQueue _readQueue;
 	};
 }
-
-#include "Client.tpp"

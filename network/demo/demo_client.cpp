@@ -14,11 +14,11 @@ int id = -1;
 bool quit = false;
 network::TimeUnit lastPing;
 
-void stayConnected(network::Client<messages::Type>& connection) 
+void stayConnected(network::Client& client) 
 {
 	while (!quit)
 	{
-		bool expectedDisconnect = connection.connect(TIMEOUT);
+		bool expectedDisconnect = client.connect(TIMEOUT);
 		if (expectedDisconnect)
 		{
 			std::cout << "[main] Connection ended" << std::endl;
@@ -33,9 +33,10 @@ void stayConnected(network::Client<messages::Type>& connection)
 	}
 }
 
-void sendChatMsg(network::Client<messages::Type>& connection)
+void sendChatMsg(network::Client& client)
 {
 	std::string in;
+	network::BufferWriter<messages::Type> writer;
 	while (!quit)
 	{
 		std::getline(std::cin, in);
@@ -45,11 +46,12 @@ void sendChatMsg(network::Client<messages::Type>& connection)
 		if (in.empty())
 		{
 			quit = true;
-			connection.disconnect();
+			client.disconnect();
 		}
 		else
-		{			
-			connection.send<messages::Type::CHAT_MSG, messages::body::ChatMsg>(message);
+		{	
+			auto& buffer = writer.writeToBuffer<messages::Type::CHAT_MSG>(message);
+			client.send(buffer);
 		}
 	}
 }
@@ -73,16 +75,18 @@ int main(int argc, char* argv[])
 	// set host to connect to
 	enet_address_set_host(&address, HOST_NAME);
 	address.port = PORT;
-	network::Client<messages::Type> client(address);
+	network::Client client(address);
 
 	std::thread read_thread(stayConnected, std::ref(client));
 	std::thread ping_thread([&]() {
+		network::BufferWriter<messages::Type> writer;
 		while (!quit)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(5));
 			if (client.isConnected())
 			{
-				client.send<messages::Type::PING>();
+				auto& buffer = writer.writeToBuffer<messages::Type::PING>();
+				client.send(buffer);
 				auto now = network::currentTime();
 				lastPing = now;
 			}

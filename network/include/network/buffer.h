@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <cstring>
 #include <stdint.h>
 
 namespace network {
@@ -21,31 +20,11 @@ namespace network {
 		~Buffer() = default;
 
 	public:
-		template <typename T>
-		void write(const T& data)
-		{
-			static_assert(std::is_standard_layout<T>::value, "Data is too complex");
+		template <typename _Data>
+		Buffer& write(const _Data& data);
 
-			size_t currSize = _internalBuffer.size();
-			size_t writeSize = sizeof(T);
-			_internalBuffer.resize(currSize + writeSize);
-			std::memcpy(_internalBuffer.data() + currSize, &data, writeSize);
-		}
-
-		template <typename T>
-		void read(T& data)
-		{
-			static_assert(std::is_standard_layout<T>::value, "Data is too complex");
-			size_t currSize = _internalBuffer.size();
-			size_t readSize = sizeof(T);
-			size_t newSize = currSize - readSize;
-
-			// if (newSize < 0)
-			// 	return;
-				
-			std::memcpy(&data, _internalBuffer.data() + newSize, readSize);
-			_internalBuffer.resize(newSize);
-		}
+		template <typename _Data>
+		Buffer& read(_Data& data);
 
 		void fill(const void* data, size_t size);
 
@@ -56,4 +35,31 @@ namespace network {
 	private:
 		std::vector<char> _internalBuffer;
 	};
+}
+
+template <typename _Data>
+network::Buffer& network::Buffer::write(const _Data& data)
+{
+	static_assert(std::is_standard_layout<_Data>::value, "Data is too complex");
+	size_t currSize = _internalBuffer.size();
+	size_t writeSize = sizeof(_Data);
+	_internalBuffer.resize(currSize + writeSize);
+	std::memcpy(_internalBuffer.data() + currSize, &data, writeSize);
+	return *this;
+}
+
+template <typename _Data>
+network::Buffer& network::Buffer::read(_Data& data)
+{
+	static_assert(std::is_standard_layout<_Data>::value, "Data is too complex");
+	size_t currSize = _internalBuffer.size();
+	size_t readSize = sizeof(_Data);
+	size_t newSize = currSize - readSize;
+
+	// if (newSize < 0)
+	// 	return;
+				
+	std::memcpy(&data, _internalBuffer.data() + newSize, readSize);
+	_internalBuffer.resize(newSize);
+	return *this;
 }

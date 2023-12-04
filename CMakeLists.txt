@@ -10,13 +10,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(ENET_DIR "${PROJECT_SOURCE_DIR}/network/vendor/enet")
 
 add_library(network STATIC)
-target_sources(network PRIVATE "network/src/buffer.cpp" "network/src/network.cpp" )
+target_sources(network 
+	PRIVATE 
+		"network/src/Client.cpp"
+		"network/src/Server.cpp"
+		"network/src/Buffer.cpp"
+		"network/src/Common.cpp"
+)
 target_include_directories(network 
 	PUBLIC 
 		"${ENET_DIR}/include"
 		"${PROJECT_SOURCE_DIR}/network/include"
-	PRIVATE 
-		"${PROJECT_SOURCE_DIR}/network/src"
 )
 if(WIN32)
 	target_link_libraries(network PRIVATE WS2_32 WINMM ${ENET_DIR}/enet64.lib)

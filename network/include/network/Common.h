@@ -3,23 +3,22 @@
 #include <enet/enet.h>
 
 #include <chrono>
-#include <iostream>
 #include <mutex>
 
-#include "buffer.h"
+#include "Buffer.h"
 
 namespace network
 {
-	namespace Bandwidth {
-		constexpr auto INF = 0;
-	}
-
 	typedef std::chrono::steady_clock clock;
 	typedef clock::time_point TimeUnit;
 
 	inline TimeUnit currentTime()
 	{
 		return clock::now();
+	}
+
+	namespace Bandwidth {
+		constexpr int INF = 0;
 	}
 
 	/*
@@ -43,21 +42,12 @@ namespace network
 	/*
 	* Helper class to encode messages as ENet packets
 	*/
-	template <typename T>
 	class MessageService
 	{
 	public:
-		template <T type>
-		int send(ENetPeer* peer)
+		int send(ENetPeer* peer, const Buffer& buffer)
 		{
-			ENetPacket* packet = createPacket<type>();
-			return enet_peer_send(peer, 0, packet);
-		}
-
-		template <T type, typename V>
-		int send(ENetPeer* peer, const V& body)
-		{
-			ENetPacket* packet = createPacket<type>(body);
+			ENetPacket* packet = createPacket(buffer);
 			return enet_peer_send(peer, 0, packet);
 		}
 
@@ -66,26 +56,30 @@ namespace network
 		* Note: this method is not thread-safe.
 		* Caller is responsible for de-allocating packet memory
 		*/
-		template <T type>
-		ENetPacket* createPacket()
+		ENetPacket* createPacket(const Buffer& buffer)
 		{
-			_writeBuffer.write(type);
-			auto data = _writeBuffer.data();
-			auto size = _writeBuffer.size();
-			ENetPacket* packet = enet_packet_create(data, size, ENET_PACKET_FLAG_RELIABLE); // TODO: is this flag necessary?
-			_writeBuffer.clear();
-			return packet;
+			auto data = buffer.data();
+			auto size = buffer.size();
+			return enet_packet_create(data, size, ENET_PACKET_FLAG_RELIABLE); // TODO: is this flag necessary?
+		}
+	};
+
+	template <typename _MsgType>
+	class BufferWriter
+	{
+	public:
+		template <_MsgType type>
+		const Buffer& writeToBuffer()
+		{
+			return _writeBuffer.write(type);
 		}
 
-		/*
-		* Note: this method is not thread-safe.
-		* Caller is responsible for de-allocating packet memory
-		*/
-		template <T type, typename U>
-		ENetPacket* createPacket(const U& body)
+		template <_MsgType type, typename _MsgBody>
+		const Buffer& writeToBuffer(const _MsgBody& body)
 		{
-			_writeBuffer.write(body);
-			return createPacket<type>();
+			return _writeBuffer
+				.write(body)
+				.write(type);
 		}
 
 	private:

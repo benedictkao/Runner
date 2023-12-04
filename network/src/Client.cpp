@@ -1,8 +1,11 @@
-template <typename _MsgType>
-network::Client<_MsgType>::Client(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
+#include <network/Client.h>
 
-template <typename _MsgType>
-bool network::Client<_MsgType>::connect(int timeout, int interval)
+#include <iostream>
+#include <atomic>
+
+network::Client::Client(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
+
+bool network::Client::connect(int timeout, int interval)
 {
 	if (_connection.getState() != Connection::State::DISCONNECTED)
 		return false;
@@ -33,8 +36,7 @@ bool network::Client<_MsgType>::connect(int timeout, int interval)
 	return expected;
 }
 
-template <typename _MsgType>
-void network::Client<_MsgType>::disconnect()
+void network::Client::disconnect()
 {
 	std::cout << "[Client] Manually disconnecting..." << std::endl;
 	_connection.setState(Connection::State::DISCONNECTING);
@@ -47,56 +49,40 @@ void network::Client<_MsgType>::disconnect()
 	// If it is not, then it will still be updated after timeout anyway
 }
 
-template <typename _MsgType>
-bool network::Client<_MsgType>::isConnected()
+bool network::Client::isConnected()
 {
 	return _connection.getState() == Connection::State::CONNECTED;
 }
 
-template <typename _MsgType>
-network::Client<_MsgType>::InputQueue& network::Client<_MsgType>::getInQueue()
+network::Client::InputQueue& network::Client::getInQueue()
 {
 	return _readQueue;
 }
 
-template <typename _MsgType>
-void network::Client<_MsgType>::onConnected(ENetEvent* event)
+void network::Client::onConnected(ENetEvent* event)
 {
 	std::cout << "[Client] Connected to server!" << std::endl;
 	_connection.setState(Connection::State::CONNECTED);
 }
 
-template <typename _MsgType>
-bool network::Client<_MsgType>::onDisconnected(ENetEvent* event)
+bool network::Client::onDisconnected(ENetEvent* event)
 {
 	std::cout << "[Client] Disconnected from server" << std::endl;
 	return true;
 }
 
-template <typename _MsgType>
-ENetHost* network::Client<_MsgType>::getHost() const
+ENetHost* network::Client::getHost() const
 {
 	return _client.getHost();
 }
 
-template <typename _MsgType>
-template <_MsgType type>
-void network::Client<_MsgType>::send()
+void network::Client::send(const Buffer& buffer)
 {
 	if (isConnected())
-		_msgService.send<type>(_server);
+		_msgService.send(_server, buffer);
 }
 
-template <typename _MsgType>
-template <_MsgType type, typename _MsgBody>
-void network::Client<_MsgType>::send(const _MsgBody& body)
-{
-	if (isConnected())
-		_msgService.send<type>(_server, body);
-}
-
-template <typename _MsgType>
-void network::Client<_MsgType>::readEvents(int timeout, int interval)
+void network::Client::readEvents(int timeout, int interval)
 {
 	EventReader reader;
 	auto lastUpdated = network::currentTime();
@@ -116,8 +102,7 @@ void network::Client<_MsgType>::readEvents(int timeout, int interval)
 	}
 }
 
-template <typename _MsgType>
-void network::Client<_MsgType>::resetConnection()
+void network::Client::resetConnection()
 {
 	enet_peer_reset(_server);
 	_connection.setState(Connection::State::DISCONNECTED);

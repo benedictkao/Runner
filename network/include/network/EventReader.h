@@ -2,14 +2,13 @@
 
 #include <enet/enet.h>
 
-#include "buffer.h"
 #include "ConcurrentQueue.h"
-#include "network.h"
+#include "Common.h"
 
 namespace network
 {
 	struct InMessage {
-		ENetPeer* source;
+		ENetPeer* source = nullptr;
 		network::Buffer raw;
 	};
 
@@ -52,8 +51,7 @@ bool network::EventReader::read(
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
-				InMessage msg;
-				msg.source = event->peer;
+				InMessage msg = { event->peer };
 				msg.raw.fill(event->packet->data, event->packet->dataLength);
 				inQueue.push(std::move(msg));
 			}
