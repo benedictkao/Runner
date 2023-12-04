@@ -70,12 +70,7 @@ int main(int argc, char* argv[])
 	}
 	atexit(enet_deinitialize);
 	
-	ENetAddress address;
-
-	// set host to connect to
-	enet_address_set_host(&address, HOST_NAME);
-	address.port = PORT;
-	network::Client client(address);
+	network::Client client(HOST_NAME, PORT);
 
 	std::thread read_thread(stayConnected, std::ref(client));
 	std::thread ping_thread([&]() {

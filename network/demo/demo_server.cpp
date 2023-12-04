@@ -22,10 +22,7 @@ int main(int argc, char* argv[])
 	}
 	atexit(enet_deinitialize);
 
-	ENetAddress address;
-	address.host = ENET_HOST_ANY;	// bind or connect to any available IP address
-	address.port = PORT_NUMBER;
-	network::Server server(address, MAX_NUM_CLIENTS);
+	network::Server server(PORT_NUMBER, MAX_NUM_CLIENTS);
 	std::thread readThread([&]() {
 		server.run(20);
 	});

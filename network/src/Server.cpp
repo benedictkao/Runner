@@ -2,7 +2,7 @@
 
 #include "logging/Logger.h"
 
-network::Server::Server(ENetAddress& address, int maxConnections): _host(&address, maxConnections), _clients(maxConnections) {}
+network::Server::Server(int port, int maxConnections): _host(ENET_HOST_ANY, port, maxConnections), _clients(maxConnections) {}
 
 void network::Server::onConnected(ENetEvent* event)
 {

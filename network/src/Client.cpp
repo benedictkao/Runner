@@ -2,7 +2,11 @@
 
 #include "logging/Logger.h"
 
-network::Client::Client(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
+network::Client::Client(const char* serverName, int port): _client(1), _server(nullptr)
+{
+	enet_address_set_host(&_serverAddress, serverName);
+	_serverAddress.port = port;
+}
 
 bool network::Client::connect(int timeout, int interval)
 {

@@ -27,16 +27,15 @@ namespace network
 	class Host
 	{
 	public:
-		Host(ENetAddress* address, int maxConnections, int numChannels = 1, int inBandwidth = Bandwidth::INF, int outBandwidth = Bandwidth::INF);
+		Host(const char* hostName, int port, int maxConnections, int numChannels = 1, int inBandwidth = Bandwidth::INF, int outBandwidth = Bandwidth::INF);
+		Host(int maxConnections, int numChannels = 1, int inBandwidth = Bandwidth::INF, int outBandwidth = Bandwidth::INF);
 		~Host();
 
 	public:
-		ENetEvent* read(int timeout);
 		ENetHost* getHost() const;
 
 	private:
 		ENetHost* _host;
-		ENetEvent _event;
 	};
 
 	/*

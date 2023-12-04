@@ -19,7 +19,7 @@ namespace network
 		typedef ConcurrentQueue<InMessage> InputQueue;
 
 	public:
-	Client(const ENetAddress& server);
+	Client(const char* serverName, int port);
 
 	public:
 		/*

@@ -16,7 +16,7 @@ namespace network
 	class Server
 	{
 	public:
-		Server(ENetAddress& address, int maxConnections);
+		Server(int port, int maxConnections);
 
 	/*
 	* Interface methods for EventReader::read template arg _Connection
