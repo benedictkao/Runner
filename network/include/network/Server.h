@@ -34,6 +34,9 @@ namespace network
 		void send(ENetPeer* client, const Buffer&);
 
 	private:
+		inline Host createHost(int port, int maxConnections) const;
+
+	private:
 		Host _host;
 		ConcurrentSet<ENetPeer*> _clients;
 		ConcurrentQueue<InMessage> _readQueue;

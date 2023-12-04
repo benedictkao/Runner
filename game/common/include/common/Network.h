@@ -2,9 +2,9 @@
 
 #include <stdint.h>
 
-namespace net
+namespace common
 {
-	static constexpr int PORT{ 7777 };
+	static constexpr int PORT_NUMBER{ 7777 };
 
 	namespace messages
 	{

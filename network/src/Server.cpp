@@ -2,7 +2,14 @@
 
 #include "logging/Logger.h"
 
-network::Server::Server(int port, int maxConnections): _host(ENET_HOST_ANY, port, maxConnections), _clients(maxConnections) {}
+network::Server::Server(int port, int maxConnections): _host(createHost(port, maxConnections)), _clients(maxConnections) {}
+
+inline network::Host network::Server::createHost(int port, int maxConnections) const
+{
+	ENetAddress address { ENET_HOST_ANY, port };
+	Host host(&address, maxConnections);
+	return host;
+}
 
 void network::Server::onConnected(ENetEvent* event)
 {

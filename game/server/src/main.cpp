@@ -2,8 +2,12 @@
 #include "logging/Logger.h"
 #include "network/Server.h"
 
+static constexpr int MAX_NUM_CLIENTS{ 32 };
+static constexpr int READ_INTERVAL_MILLIS { 20 };
+
 int main(int argc, char* argv[])
 {
-	ENetAddress address;
-	network::Server server(32);
+	network::initENet();
+	network::Server server(common::PORT_NUMBER, MAX_NUM_CLIENTS);
+	server.run(READ_INTERVAL_MILLIS);
 }

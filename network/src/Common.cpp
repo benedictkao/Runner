@@ -1,32 +1,23 @@
 #include "network/Common.h"
 
+#include <cstdlib>
+
 #include "logging/Logger.h"
 
-network::Host::Host(const char* hostName, int port, int maxConnections, int numChannels, int inBandwidth, int outBandwidth)
+int network::initENet()
 {
-	ENetAddress address;
-	enet_address_set_host(&address, hostName);
-	address.port = port;
-	_host = enet_host_create(
-		&address,										// the address to bind the server host to
-		static_cast<size_t>(maxConnections),			// number of outgoing connections, server can connect to up to 32 clients
-		static_cast<size_t>(numChannels),				// number of channels, 1 for now
-		static_cast<enet_uint32>(inBandwidth),			// incoming bandwidth, 0 means infinite
-		static_cast<enet_uint32>(outBandwidth)			// outgoing bandwidth, 0 means infinite
+	int result = enet_initialize();
+	debug::log(
+		result == 0 ? "[ENet] Successful ENet init!" : "[ENet] An error occurred when initializing ENet"
 	);
-	if (_host == NULL) {
-		debug::log("[Host] Error occurred while trying to create an ENet host");
-		// TODO: handle host not created error
-	}
-	else {
-		debug::log("[Host] ENet host created successfully");
-	}
+	atexit(enet_deinitialize);
+	return result;
 }
 
-network::Host::Host(int maxConnections, int numChannels, int inBandwidth, int outBandwidth)
+network::Host::Host(ENetAddress* address, int maxConnections, int numChannels, int inBandwidth, int outBandwidth)
 {
 	_host = enet_host_create(
-		NULL,											// the address to bind the server host to
+		address,									// the address to bind the server host to
 		static_cast<size_t>(maxConnections),			// number of outgoing connections, server can connect to up to 32 clients
 		static_cast<size_t>(numChannels),				// number of channels, 1 for now
 		static_cast<enet_uint32>(inBandwidth),			// incoming bandwidth, 0 means infinite

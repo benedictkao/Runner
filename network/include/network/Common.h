@@ -21,14 +21,15 @@ namespace network
 		constexpr int INF = 0;
 	}
 
+	int initENet();
+
 	/*
 	* Wrapper class for ENet host for automatic cleanup on destroy
 	*/
 	class Host
 	{
 	public:
-		Host(const char* hostName, int port, int maxConnections, int numChannels = 1, int inBandwidth = Bandwidth::INF, int outBandwidth = Bandwidth::INF);
-		Host(int maxConnections, int numChannels = 1, int inBandwidth = Bandwidth::INF, int outBandwidth = Bandwidth::INF);
+		Host(ENetAddress* address, int maxConnections, int numChannels = 1, int inBandwidth = Bandwidth::INF, int outBandwidth = Bandwidth::INF);
 		~Host();
 
 	public:
