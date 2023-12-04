@@ -4,7 +4,7 @@
 #include "math/Math.h"
 #include "Scene.h"
 #include "PlayerManager.h"
-#include "util/Logger.h"
+#include "logging/Logger.h"
 #include "input/InputManager.h"
 
 static constexpr auto TARGET_FPS{ 60 };

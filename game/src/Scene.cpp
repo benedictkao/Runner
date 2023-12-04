@@ -3,7 +3,7 @@
 #include "Constants.h"
 #include "SDL.h"
 #include "math/Math.h"
-#include "util/Logger.h"
+#include <logging/Logger.h>
 #include <vector>
 
 constexpr auto PLAYER_SPEED{ 6.0f };

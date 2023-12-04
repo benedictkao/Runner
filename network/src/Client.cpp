@@ -1,7 +1,6 @@
-#include <network/Client.h>
+#include "network/Client.h"
 
-#include <iostream>
-#include <atomic>
+#include "logging/Logger.h"
 
 network::Client::Client(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
 
@@ -11,7 +10,7 @@ bool network::Client::connect(int timeout, int interval)
 		return false;
 	
 	_connection.setState(Connection::State::CONNECTING);
-	std::cout << "[Client] Attempting new connection to " << _serverAddress.host << ':' << _serverAddress.port << "..." << std::endl;
+	debug::log("[Client] Attempting new connection to %d:%d...", _serverAddress.host, _serverAddress.port);
 
 	if (_server)
 		enet_peer_reset(_server);	// clear previous connection if there was any
@@ -23,7 +22,7 @@ bool network::Client::connect(int timeout, int interval)
 	);
 	if (_server == NULL) 
 	{
-		std::cout << "[Client] Connection failed, no available peers for initiating an ENet connection." << std::endl;
+		debug::log("[Client] Connection failed, no available peers for initiating an ENet connection.");
 		_connection.setState(Connection::State::DISCONNECTED);
 		return false;
 	}
@@ -38,7 +37,7 @@ bool network::Client::connect(int timeout, int interval)
 
 void network::Client::disconnect()
 {
-	std::cout << "[Client] Manually disconnecting..." << std::endl;
+	debug::log("[Client] Manually disconnecting...");
 	_connection.setState(Connection::State::DISCONNECTING);
 	enet_peer_disconnect(
 		_server,
@@ -61,13 +60,13 @@ network::Client::InputQueue& network::Client::getInQueue()
 
 void network::Client::onConnected(ENetEvent* event)
 {
-	std::cout << "[Client] Connected to server!" << std::endl;
+	debug::log("[Client] Connected to server!");
 	_connection.setState(Connection::State::CONNECTED);
 }
 
 bool network::Client::onDisconnected(ENetEvent* event)
 {
-	std::cout << "[Client] Disconnected from server" << std::endl;
+	debug::log("[Client] Disonnected to server");
 	return true;
 }
 
@@ -92,7 +91,7 @@ void network::Client::readEvents(int timeout, int interval)
 		auto timeSinceLastMsg = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdated);
 		if (timeSinceLastMsg >= std::chrono::milliseconds(timeout))
 		{
-			std::cout << "[Client] Connection timed out!" << std::endl;
+			debug::log("[Client] Connection timed out!");
 			return;
 		}
 
@@ -106,5 +105,5 @@ void network::Client::resetConnection()
 {
 	enet_peer_reset(_server);
 	_connection.setState(Connection::State::DISCONNECTED);
-	std::cout << "[Client] Connection reset" << std::endl;
+	debug::log("[Client] Connection reset");
 }

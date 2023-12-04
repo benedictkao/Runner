@@ -16,5 +16,11 @@ add_executable(main
 	"src/input/MouseHandler.cpp"
 	"src/PlayerManager.cpp"
 	"src/input/InputState.cpp")
-target_link_libraries(main SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer) # SDL2main runs SDL2main function which then calls this source main
+target_link_libraries(main 
+	SDL2::SDL2
+	SDL2::SDL2main	# SDL2main runs SDL2main function which then calls this source main
+	SDL2_image::SDL2_image
+	SDL2_mixer::SDL2_mixer
+	logging
+)
 #target_include_directories(main PRIVATE "${PROJECT_SOURCE_DIR}/game/src")

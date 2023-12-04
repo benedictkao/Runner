@@ -1,6 +1,6 @@
 #include "network/Common.h"
 
-#include <iostream>
+#include "logging/Logger.h"
 
 network::Host::Host(ENetAddress* address, int maxConnections, int numChannels, int inBandwidth, int outBandwidth)
 {
@@ -12,11 +12,11 @@ network::Host::Host(ENetAddress* address, int maxConnections, int numChannels, i
 		static_cast<enet_uint32>(outBandwidth)			// outgoing bandwidth, 0 means infinite
 	);
 	if (_host == NULL) {
-		std::cout << "[Host] Error occurred while trying to create an ENet host." << std::endl;
+		debug::log("[Host] Error occurred while trying to create an ENet host");
 		// TODO: handle host not created error
 	}
 	else {
-		std::cout << "[Host] ENet host created successfully" << std::endl;
+		debug::log("[Host] ENet host created successfully");
 	}
 }
 

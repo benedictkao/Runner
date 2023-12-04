@@ -14,9 +14,18 @@ target_include_directories(network
 		"include"
 )
 if(WIN32)
-	target_link_libraries(network PRIVATE WS2_32 WINMM ${ENET_DIR}/enet64.lib)
+	target_link_libraries(network
+		PRIVATE
+			WS2_32 WINMM
+			${ENET_DIR}/enet64.lib
+			logging
+	)
 else()
-	target_link_libraries(network PRIVATE /usr/local/lib/libenet.dylib) # fixme: add FindENet.cmake to automate this
+	target_link_libraries(network
+		PRIVATE
+			/usr/local/lib/libenet.dylib	# fixme: add FindENet.cmake to automate this
+			logging
+	) 
 endif()
 
 add_executable(demo_client "demo/demo_client.cpp")

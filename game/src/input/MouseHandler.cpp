@@ -1,6 +1,6 @@
 #include "MouseHandler.h"
 
-#include "../util/Logger.h"
+#include "logging/Logger.h"
 
 MouseHandler::MouseHandler() : _cursorPos({ 0, 0 }) {}
 

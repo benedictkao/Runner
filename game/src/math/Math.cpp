@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <utility>
-#include "../util/Logger.h"
+#include "logging/Logger.h"
 
 SDL2::Rect math::toSDLRect(const Rect2Df& srcRect) {
 	return { static_cast<int>(srcRect.pos.x),
