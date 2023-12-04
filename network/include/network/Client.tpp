@@ -1,8 +1,8 @@
-template <typename T>
-network::Client<T>::Client(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
+template <typename _MsgType>
+network::Client<_MsgType>::Client(const ENetAddress& server): _client(NULL, 1), _server(nullptr), _serverAddress(server) {}
 
-template <typename T>
-bool network::Client<T>::connect(int timeout, int interval)
+template <typename _MsgType>
+bool network::Client<_MsgType>::connect(int timeout, int interval)
 {
 	if (_connection.getState() != Connection::State::DISCONNECTED)
 		return false;
@@ -33,8 +33,8 @@ bool network::Client<T>::connect(int timeout, int interval)
 	return expected;
 }
 
-template <typename T>
-void network::Client<T>::disconnect()
+template <typename _MsgType>
+void network::Client<_MsgType>::disconnect()
 {
 	std::cout << "[Client] Manually disconnecting..." << std::endl;
 	_connection.setState(Connection::State::DISCONNECTING);
@@ -47,35 +47,58 @@ void network::Client<T>::disconnect()
 	// If it is not, then it will still be updated after timeout anyway
 }
 
-template <typename T>
-bool network::Client<T>::isConnected()
+template <typename _MsgType>
+bool network::Client<_MsgType>::isConnected()
 {
 	return _connection.getState() == Connection::State::CONNECTED;
 }
 
-template <typename T>
-template <T type>
-void network::Client<T>::send()
-{
-	_msgService.send<type>(_server);
-}
-
-template <typename T>
-template <T type, typename V>
-void network::Client<T>::send(const V& body)
-{
-	_msgService.send<type>(_server, body);
-}
-
-template <typename T>
-mux_queue<network::Buffer>& network::Client<T>::getInQueue()
+template <typename _MsgType>
+network::Client<_MsgType>::InputQueue& network::Client<_MsgType>::getInQueue()
 {
 	return _readQueue;
 }
 
-template <typename T>
-void network::Client<T>::readEvents(int timeout, int interval)
+template <typename _MsgType>
+void network::Client<_MsgType>::onConnected(ENetEvent* event)
 {
+	std::cout << "[Client] Connected to server!" << std::endl;
+	_connection.setState(Connection::State::CONNECTED);
+}
+
+template <typename _MsgType>
+bool network::Client<_MsgType>::onDisconnected(ENetEvent* event)
+{
+	std::cout << "[Client] Disconnected from server" << std::endl;
+	return true;
+}
+
+template <typename _MsgType>
+ENetHost* network::Client<_MsgType>::getHost() const
+{
+	return _client.getHost();
+}
+
+template <typename _MsgType>
+template <_MsgType type>
+void network::Client<_MsgType>::send()
+{
+	if (isConnected())
+		_msgService.send<type>(_server);
+}
+
+template <typename _MsgType>
+template <_MsgType type, typename _MsgBody>
+void network::Client<_MsgType>::send(const _MsgBody& body)
+{
+	if (isConnected())
+		_msgService.send<type>(_server, body);
+}
+
+template <typename _MsgType>
+void network::Client<_MsgType>::readEvents(int timeout, int interval)
+{
+	EventReader reader;
 	auto lastUpdated = network::currentTime();
 	while (true)
 	{
@@ -87,41 +110,14 @@ void network::Client<T>::readEvents(int timeout, int interval)
 			return;
 		}
 
-		while (ENetEvent* event = _client.read(interval))	// read with up to `interval` ms delay
-		{
-			switch (event->type) 
-			{
-				case ENET_EVENT_TYPE_CONNECT:
-					std::cout << "[Client] Connected to server!" << std::endl;
-					_connection.setState(Connection::State::CONNECTED);
-					break;
-				case ENET_EVENT_TYPE_RECEIVE:
-				{
-					// if (!isConnected()) 
-					// {
-					// 	enet_packet_destroy(event->packet);
-					// 	return;
-					// }
-					lastUpdated = network::currentTime();
-					network::Buffer readBuffer;
-					readBuffer.fill(event->packet->data, event->packet->dataLength);
-					_readQueue.push(std::move(readBuffer));
-				}
-					break;
-				case ENET_EVENT_TYPE_DISCONNECT: 
-				{
-					std::cout << "[Client] Disconnected from server" << std::endl;
-					return;
-				}
-				default:
-					break;
-			}
-		}
+		bool disconnected = reader.read(*this, _readQueue, interval, lastUpdated);
+		if (disconnected)
+			return;
 	}
 }
 
-template <typename T>
-void network::Client<T>::resetConnection()
+template <typename _MsgType>
+void network::Client<_MsgType>::resetConnection()
 {
 	enet_peer_reset(_server);
 	_connection.setState(Connection::State::DISCONNECTED);

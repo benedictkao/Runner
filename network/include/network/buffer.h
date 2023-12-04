@@ -18,9 +18,11 @@ namespace network {
 		Buffer& operator=(const Buffer&);
 		Buffer& operator=(Buffer&&) noexcept;
 
+		~Buffer() = default;
+
 	public:
 		template <typename T>
-		void write(const T& data) 
+		void write(const T& data)
 		{
 			static_assert(std::is_standard_layout<T>::value, "Data is too complex");
 

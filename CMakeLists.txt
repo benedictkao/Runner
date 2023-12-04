@@ -7,10 +7,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 ## Network library, this can be put into separate file like FindNetwork.cmake
 
-set(ENET_DIR ${PROJECT_SOURCE_DIR}/network/vendor/enet)
+set(ENET_DIR "${PROJECT_SOURCE_DIR}/network/vendor/enet")
 
 add_library(network STATIC)
-target_sources(network PRIVATE "network/src/buffer.cpp" "network/src/network.cpp")
+target_sources(network PRIVATE "network/src/buffer.cpp" "network/src/network.cpp" )
 target_include_directories(network 
 	PUBLIC 
 		"${ENET_DIR}/include"

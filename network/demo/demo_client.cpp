@@ -73,32 +73,32 @@ int main(int argc, char* argv[])
 	// set host to connect to
 	enet_address_set_host(&address, HOST_NAME);
 	address.port = PORT;
-	network::Client<messages::Type> connection(address);
+	network::Client<messages::Type> client(address);
 
-	std::thread read_thread(stayConnected, std::ref(connection));
+	std::thread read_thread(stayConnected, std::ref(client));
 	std::thread ping_thread([&]() {
 		while (!quit)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(5));
-			if (connection.isConnected())
+			if (client.isConnected())
 			{
-				connection.send<messages::Type::PING>();
+				client.send<messages::Type::PING>();
 				auto now = network::currentTime();
 				lastPing = now;
 			}
 		}
 	});
-	std::thread write_thread(sendChatMsg, std::ref(connection));
+	std::thread write_thread(sendChatMsg, std::ref(client));
 
 	// GAME LOOP START
-
+	
+	auto& inQueue = client.getInQueue();
 	while (!quit)
 	{
-		auto& inQueue = connection.getInQueue();
 		auto numMsgs = inQueue.size();
 		for (int i = 0; i < numMsgs; ++i)
 		{
-			network::Buffer buffer = inQueue.popFront();
+			network::Buffer buffer = inQueue.popFront().raw;
 			messages::Type type;
 			buffer.read(type);
 			switch (type) {
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 			case messages::Type::LOGIN:
 			{
 				messages::body::Login loginBody;
-				buffer.read<messages::body::Login>(loginBody);
+				buffer.read(loginBody);
 				id = loginBody.id;
 				std::cout << "[main] You are connected to the server! Your id is " << id << "\n++++++++++++++" << std::endl;
 			}
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 			case messages::Type::CHAT_MSG:
 			{
 				messages::body::ChatMsg msg;
-				buffer.read<messages::body::ChatMsg>(msg);
+				buffer.read(msg);
 				std::cout << msg.id << ": " << msg.message << std::endl;
 			}
 			break;

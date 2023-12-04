@@ -28,7 +28,7 @@ ENetEvent* network::Host::read(int timeout)
 	return enet_host_service(_host, &_event, timeout) > 0 ? &_event : nullptr;
 }
 
-ENetHost * network::Host::getHost() const
+ENetHost* network::Host::getHost() const
 {
 	return _host;
 }

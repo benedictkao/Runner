@@ -1,7 +1,8 @@
 #pragma once
 
 #include <enet/enet.h>
-#include "mux_queue.h"
+#include "EventReader.h"
+#include "ConcurrentQueue.h"
 #include "network.h"
 
 namespace network
@@ -12,11 +13,11 @@ namespace network
 		constexpr int DEFAULT_READ_INTERVAL { 20 };
 	}
 
-	template <typename T>
+	template <typename _MsgType>
 	class Client
 	{
 	public:
-		typedef mux_queue<network::Buffer> InputQueue;
+		typedef ConcurrentQueue<InMessage> InputQueue;
 
 	public:
 	Client(const ENetAddress& server);
@@ -30,12 +31,20 @@ namespace network
 		bool isConnected();
 		InputQueue& getInQueue();
 
+	/*
+	* Interface methods for EventReader::read template arg _Connection
+	*/
 	public:
-		template <T type>
+		void onConnected(ENetEvent*);
+		bool onDisconnected(ENetEvent*);
+		ENetHost* getHost() const;
+
+	public:
+		template <_MsgType type>
 		void send();
 
-		template <T type, typename V>
-		void send(const V& body);
+		template <_MsgType type, typename _MsgBody>
+		void send(const _MsgBody& body);
 
 	private:
 		void readEvents(int timeout, int interval);
@@ -46,7 +55,7 @@ namespace network
 		ENetPeer* _server;
 		ENetAddress _serverAddress;
 		Connection _connection;
-		MessageService<T> _msgService;
+		MessageService<_MsgType> _msgService;
 		InputQueue _readQueue;
 	};
 }
