@@ -27,6 +27,7 @@ else()
 			logging
 	) 
 endif()
+target_compile_definitions(network INTERFACE NOMINMAX)
 
 add_executable(demo_client "demo/demo_client.cpp")
 target_link_libraries(demo_client PRIVATE network)

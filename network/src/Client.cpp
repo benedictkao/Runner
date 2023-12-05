@@ -42,6 +42,12 @@ bool network::Client::connect(int timeout, int interval)
 void network::Client::disconnect()
 {
 	debug::log("[Client] Manually disconnecting...");
+	if (!isConnected())
+	{
+		resetConnection();
+		return;
+	}
+
 	_connection.setState(Connection::State::DISCONNECTING);
 	enet_peer_disconnect(
 		_server,
@@ -89,7 +95,7 @@ void network::Client::readEvents(int timeout, int interval)
 {
 	EventReader reader;
 	auto lastUpdated = network::currentTime();
-	while (true)
+	while (_connection.getRecentState() != Connection::State::DISCONNECTED)
 	{
 		auto now = network::currentTime();
 		auto timeSinceLastMsg = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdated);

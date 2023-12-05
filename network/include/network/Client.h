@@ -1,9 +1,8 @@
 #pragma once
 
-#include <enet/enet.h>
+#include "Common.h"
 #include "EventReader.h"
 #include "ConcurrentQueue.h"
-#include "Common.h"
 
 namespace network
 {
@@ -19,7 +18,7 @@ namespace network
 		typedef ConcurrentQueue<InMessage> InputQueue;
 
 	public:
-	Client(const char* serverName, int port);
+		Client(const char* serverName, int port);
 
 	public:
 		/*

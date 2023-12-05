@@ -1,16 +1,20 @@
 #include "Game.h"
 
+#include <thread>
+
+#include "common/Network.h"
+#include "logging/Logger.h"
+#include "network/Client.h"
+
 #include "SDL.h"
 #include "math/Math.h"
 #include "Scene.h"
 #include "PlayerManager.h"
-#include "logging/Logger.h"
 #include "input/InputManager.h"
 
 static constexpr auto TARGET_FPS{ 60 };
 static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
 enum GAME_INIT_ERROR { SUBSYSTEM = 1, WINDOW, RENDERER };
-
 
 Game::Game() : _window(nullptr), _renderer(nullptr), _running(false) {}
 
@@ -27,7 +31,12 @@ int Game::run() {
 	if (!_renderer)
 		return GAME_INIT_ERROR::RENDERER;
 
-	debug::log("Init success!");
+	debug::log("[SDL] Init success!");
+
+	network::Client client("127.0.0.1", common::PORT_NUMBER);
+	std::thread net_thread([&]() {
+		client.connect();
+	});
 
 	_running = true;
 
@@ -53,10 +62,12 @@ int Game::run() {
 		SDL2::presentScene(_renderer);
 
 		Uint64 sleepTime = calculateSleepTime(frameStart);
-		SDL2::delay(sleepTime);
+		SDL2::delay(static_cast<Uint32>(sleepTime));
 	}
 
+	client.disconnect();
 	texRepo.clear();
+	net_thread.join();
 	SDL2::close(_window, _renderer);
 	return 0;
 }

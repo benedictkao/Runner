@@ -1,5 +1,6 @@
 #pragma once
 
+//#define NOMINMAX
 #include <enet/enet.h>
 
 #include <chrono>
@@ -102,6 +103,7 @@ namespace network
 
 	public:
 		State getState();
+		State getRecentState() const;
 		void setState(State);
 
 	private:

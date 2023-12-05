@@ -50,6 +50,11 @@ network::Connection::State network::Connection::getState()
 	return _state;
 }
 
+network::Connection::State network::Connection::getRecentState() const
+{
+	return _state;
+}
+
 void network::Connection::setState(State state)
 {
 	std::lock_guard lg(_mux);

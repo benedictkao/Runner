@@ -5,11 +5,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include <enet/enet.h>
-
+#include "Common.h"
 #include "ConcurrentSet.h"
 #include "EventReader.h"
-#include "Common.h"
 
 namespace network
 {

@@ -24,5 +24,6 @@ target_link_libraries(client
 	SDL2_mixer::SDL2_mixer
 	logging
 	common
+	network
 )
 #target_include_directories(main PRIVATE "${PROJECT_SOURCE_DIR}/game/src")
