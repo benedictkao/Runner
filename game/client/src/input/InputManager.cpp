@@ -1,7 +1,7 @@
 #include "InputManager.h"
 
 #include "logging/Logger.h"
-#include "../SDL.h"
+#include "sdl/SDL.h"
 
 bool MKInputManager::readInput() {
 	SDL2::Event event;
@@ -23,9 +23,10 @@ bool MKInputManager::readInput() {
 		case SDL_KEYUP:
 			_kHandler.handleKeyUp(event.key.keysym.sym, _state);
 			break;
-		case SDL_WINDOWEVENT:
-            handleWindowEvent(event.window);
-			break;
+        // // Uncomment if want to log window events
+		// case SDL_WINDOWEVENT:
+        //     handleWindowEvent(event.window);  
+		// 	break;
 
 			// quit
 		case SDL_QUIT:

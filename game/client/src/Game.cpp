@@ -6,7 +6,7 @@
 #include "logging/Logger.h"
 #include "network/Client.h"
 
-#include "SDL.h"
+#include "sdl/SDL.h"
 #include "math/Math.h"
 #include "Scene.h"
 #include "PlayerManager.h"

@@ -1,24 +1,30 @@
 add_executable(client 
-	"src/main.cpp" 
-	"src/SDL.cpp" 
-	"src/Game.cpp" 
+	"src/main.cpp"
+
+	"src/Game.cpp"
 	"src/Scene.cpp"
 	"src/Components.cpp" 
-	"src/input/KeyboardHandler.cpp"
 	"src/TextureRepo.cpp"
+	"src/PlayerManager.cpp"
+
+	"src/sdl/SDL.cpp"
+
 	"src/math/Geometry.cpp"
 	"src/math/Math.cpp"
+	
+	"src/input/KeyboardHandler.cpp"
 	"src/input/InputManager.cpp"
 	"src/input/MouseHandler.cpp"
-	"src/PlayerManager.cpp"
 	"src/input/InputState.cpp"
 )
 target_link_libraries(client
 	PRIVATE
 		vendor.entt
 		vendor.sdl
-		logging
-		common
-		network
+
+		lib.logging
+		lib.network
+		
+		game.common
 )
-#target_include_directories(client PUBLIC "src")
+target_include_directories(client PUBLIC "src")

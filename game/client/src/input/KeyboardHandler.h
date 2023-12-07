@@ -1,7 +1,7 @@
 #pragma once
 
 #include "InputState.h"
-#include "../SDL.h"
+#include "sdl/SDL.h"
 
 class KeyboardHandler {
 public:

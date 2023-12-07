@@ -1,3 +1,5 @@
+set(LIB_PREFIX "game.")
+
 # game client
 add_subdirectory(client)
 

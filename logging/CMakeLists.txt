@@ -1,2 +1,2 @@
-add_library(logging INTERFACE)
-target_include_directories(logging INTERFACE "include")
+add_library(lib.logging INTERFACE)
+target_include_directories(lib.logging INTERFACE "include")

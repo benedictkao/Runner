@@ -1,6 +1,6 @@
 #include "KeyboardHandler.h"
 
-#include "../math/Math.h"
+#include "math/Math.h"
 
 void KeyboardHandler::handleKeyDown(SDL2::Keycode code, InputState& state) {
 	switch (code) {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../SDL.h"
-#include "../math/Geometry.h"
+#include "sdl/SDL.h"
+#include "math/Geometry.h"
 #include "InputState.h"
 
 class MouseHandler {

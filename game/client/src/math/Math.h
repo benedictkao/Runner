@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Geometry.h"
-#include "../SDL.h"
+#include "sdl/SDL.h"
 
 namespace math {
 

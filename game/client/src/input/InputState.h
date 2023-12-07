@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../math/Geometry.h"
+#include "math/Geometry.h"
 
 enum InputAction : unsigned int {
 	NONE = 0,

@@ -1,4 +1,4 @@
-set (LIB_NAME ${LIB_PREFIX}.sdl)
+set (LIB_NAME ${LIB_PREFIX}sdl)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
