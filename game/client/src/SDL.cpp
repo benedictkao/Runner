@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <logging/Logger.h>
 
 #include "Constants.h"
 #include "SDL.h"
@@ -33,16 +34,9 @@ Uint64 SDL2::elapsedTimeInMillis() {
 SDL2::Texture SDL2::loadTexture(Renderer renderer, const char* path) {
 	SDL_Texture* tex = IMG_LoadTexture(renderer, path);
 	if (!tex)
-		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION,
-			SDL_LOG_PRIORITY_INFO,
-			"Failed to load %s. Error: %s",
-			path,
-			IMG_GetError());
+		debug::log("[SDL_image] Failed to load %s. Error: %s", path, IMG_GetError());
 	else
-		SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION,
-			SDL_LOG_PRIORITY_INFO,
-			"Loaded texture %s",
-			path);
+		debug::log("[SDL_image] Loaded texture %s", path);
 	return tex;
 }
 

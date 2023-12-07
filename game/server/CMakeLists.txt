@@ -2,7 +2,8 @@ add_executable(server
 	"src/main.cpp"
 )
 target_link_libraries(server
-	logging
-	common
-	network
+	PRIVATE
+		logging
+		common
+		network
 )

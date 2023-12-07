@@ -21,4 +21,7 @@ private:
 
 public:
 	bool readInput();
+
+private:
+	void handleWindowEvent(SDL_WindowEvent);
 };

@@ -1,5 +1,3 @@
-set(ENET_DIR "${PROJECT_SOURCE_DIR}/network/vendor/enet")
-
 add_library(network STATIC)
 target_sources(network 
 	PRIVATE 
@@ -9,25 +7,14 @@ target_sources(network
 		"src/Common.cpp"
 )
 target_include_directories(network 
-	PUBLIC 
-		"${ENET_DIR}/include"
+	PUBLIC
 		"include"
 )
-if(WIN32)
-	target_link_libraries(network
-		PRIVATE
-			WS2_32 WINMM
-			${ENET_DIR}/enet64.lib
-			logging
-	)
-else()
-	target_link_libraries(network
-		PRIVATE
-			/usr/local/lib/libenet.dylib	# fixme: add FindENet.cmake to automate this
-			logging
-	) 
-endif()
-target_compile_definitions(network INTERFACE NOMINMAX)
+target_link_libraries(network
+	PUBLIC
+		vendor.enet
+		logging
+)
 
 add_executable(demo_client "demo/demo_client.cpp")
 target_link_libraries(demo_client PRIVATE network)

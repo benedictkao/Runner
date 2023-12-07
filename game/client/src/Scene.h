@@ -3,7 +3,7 @@
 #include "SDL.h"
 #include "PlayerManager.h"
 #include "TextureRepo.h"
-#include "../vendor/entt.hpp"
+#include <entt/entt.hpp>
 
 class Scene {
 private:

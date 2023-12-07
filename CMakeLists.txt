@@ -13,3 +13,6 @@ add_subdirectory(network)
 
 ## Game executable
 add_subdirectory(game)
+
+## Vendor libraries
+add_subdirectory(vendor)

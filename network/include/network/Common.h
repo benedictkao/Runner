@@ -1,6 +1,5 @@
 #pragma once
 
-//#define NOMINMAX
 #include <enet/enet.h>
 
 #include <chrono>
