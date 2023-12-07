@@ -114,7 +114,8 @@
             "name": "clang-debug-Runner",
             "description": "Build Runner game target in debug",
             "targets": [
-                "main"
+                "client",
+                "server"
             ],
             "configurePreset": "clang-debug"
         },
@@ -139,7 +140,8 @@
             "name": "clang-release-Runner",
             "description": "Build Runner game target in release",
             "targets": [
-                "main"
+                "client",
+                "server"
             ],
             "configurePreset": "clang-release"
         }

@@ -6,7 +6,7 @@ network::Server::Server(int port, int maxConnections): _host(createHost(port, ma
 
 inline network::Host network::Server::createHost(int port, int maxConnections) const
 {
-	ENetAddress address { ENET_HOST_ANY, port };
+	ENetAddress address { ENET_HOST_ANY, static_cast<enet_uint16>(port) };
 	Host host(&address, maxConnections);
 	return host;
 }
