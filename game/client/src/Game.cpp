@@ -8,8 +8,8 @@
 
 #include "sdl/SDL.h"
 #include "math/Math.h"
-#include "Scene.h"
-#include "PlayerManager.h"
+#include "scene/Scene.h"
+#include "player/PlayerManager.h"
 #include "input/InputManager.h"
 
 static constexpr auto TARGET_FPS{ 60 };

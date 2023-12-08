@@ -1,8 +1,9 @@
 #pragma once
 
 #include "sdl/SDL.h"
-#include "PlayerManager.h"
+#include "player/PlayerManager.h"
 #include "TextureRepo.h"
+#include "SceneData.h"
 #include <entt/entt.hpp>
 
 class Scene {
