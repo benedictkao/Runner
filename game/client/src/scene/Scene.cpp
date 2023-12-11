@@ -9,7 +9,6 @@
 constexpr auto PLAYER_SPEED{ 6.0f };
 constexpr auto JUMP_SPEED{ 24.0f };
 constexpr auto ANIMATION_PERIOD{ 4 };
-constexpr auto TILE_SIZE{ 32.0f };
 
 Scene::Scene(
 	SDL2::Renderer renderer,
@@ -17,14 +16,14 @@ Scene::Scene(
 	TextureRepo& texRepo
 ) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo) {}
 
-void Scene::init() {
+void Scene::init(SceneInfo data) {
 	_player = _registry.create();
 
 	auto sprite = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
 	_texRepo.loadTexture(TextureIds::PLAYER_RUN);
 	_texRepo.loadTexture(TextureIds::PLAYER_JUMP);
 
-	_registry.emplace<TransformComponent>(_player, 50.0f, 200.0f, 40.0f, 56.0f);
+	_registry.emplace<TransformComponent>(_player, data.playerInfo.transform);
 	_registry.emplace<SpriteComponent>(_player, sprite, 32, 32, 2)
 		.offset = { 6, 4 };
 	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
@@ -33,40 +32,34 @@ void Scene::init() {
 	_registry.emplace<TagComponent>(_player, "Player");
 
 	_background = _registry.create();
-	auto bg = _texRepo.loadTexture(TextureIds::BACKGROUND);
-	_registry.emplace<SpriteComponent>(_background, bg, 2304, 1296);
+	auto bg = _texRepo.loadTexture(data.mapInfo.bg.texId);
+	_registry.emplace<SpriteComponent>(_background, bg, data.mapInfo.size);
 
-	auto platformTex = _texRepo.loadTexture(TextureIds::TILE);
-	auto redPlatform = _texRepo.loadTexture(TextureIds::RED_TILE);
-	for (int i = 0; i < 30; ++i) {
-		int rem = i % 3;
-		bool topRow = i > 26;
+	for (auto& object : data.objects)
+	{
 		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, TILE_SIZE * rem, constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
-		_registry.emplace<SpriteComponent>(platform, topRow ? redPlatform : platformTex, 32, 32);
-		if (rem == 2 || topRow)
-			_registry.emplace<WallComponent>(platform);
-		_registry.emplace<TagComponent>(platform, "Platform");
-	}
-	for (int i = 0; i < 30; ++i) {
-		int rem = i % 3;
-		bool topRow = i > 26;
-		auto platform = _registry.create();
-		_registry.emplace<TransformComponent>(platform, constants::WINDOW_WIDTH - TILE_SIZE * (rem + 1), constants::WINDOW_HEIGHT - TILE_SIZE * (i / 3 + 1), TILE_SIZE, TILE_SIZE);
-		_registry.emplace<SpriteComponent>(platform, topRow ? redPlatform : platformTex, 32, 32);
-		if (rem == 0 || topRow)
+		auto platformTex = _texRepo.loadTexture(object.sprite.texId);
+		_registry.emplace<TransformComponent>(platform, object.transform);
+		_registry.emplace<SpriteComponent>(platform, platformTex, object.sprite.size);
+		if (object.hasCollision)
 			_registry.emplace<WallComponent>(platform);
 		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 
-	auto lWall = _registry.create();
-	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, constants::WINDOW_HEIGHT);
-	_registry.emplace<WallComponent>(lWall);
-	_registry.emplace<TagComponent>(lWall, "Left Wall");
-	auto rWall = _registry.create();
-	_registry.emplace<TransformComponent>(rWall, constants::WINDOW_WIDTH, 0.0f, 1.0f, constants::WINDOW_HEIGHT);
-	_registry.emplace<WallComponent>(rWall);
-	_registry.emplace<TagComponent>(rWall, "Right Wall");
+	if (data.mapInfo.walls.left)
+	{
+		auto lWall = _registry.create();
+		_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, data.mapInfo.size.y);
+		_registry.emplace<WallComponent>(lWall);
+		_registry.emplace<TagComponent>(lWall, "Left Wall");
+	}
+	if (data.mapInfo.walls.right)
+	{
+		auto rWall = _registry.create();
+		_registry.emplace<TransformComponent>(rWall, constants::WINDOW_WIDTH, 0.0f, 1.0f, data.mapInfo.size.x);
+		_registry.emplace<WallComponent>(rWall);
+		_registry.emplace<TagComponent>(rWall, "Right Wall");
+	}
 }
 
 void Scene::update() {

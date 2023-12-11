@@ -3,7 +3,7 @@
 #include "sdl/SDL.h"
 #include "player/PlayerManager.h"
 #include "TextureRepo.h"
-#include "SceneData.h"
+#include "SceneInfo.h"
 #include <entt/entt.hpp>
 
 class Scene {
@@ -18,7 +18,7 @@ private:
 public:
 	Scene(SDL2::Renderer, PlayerManager&, TextureRepo&);
 
-	void init();
+	void init(SceneInfo data);
 	void update();
 
 private:

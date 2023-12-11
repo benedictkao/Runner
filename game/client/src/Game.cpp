@@ -9,6 +9,7 @@
 #include "sdl/SDL.h"
 #include "math/Math.h"
 #include "scene/Scene.h"
+#include "scene/SceneLoader.h"
 #include "player/PlayerManager.h"
 #include "input/InputManager.h"
 
@@ -46,7 +47,8 @@ int Game::run() {
 	Scene scene(_renderer, pManager, texRepo);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 	SDL_SetCursor(cursor);
-	scene.init();
+	
+	scene.init(SceneLoader::load(0));
 
 	while (_running) {
 		// main game loop

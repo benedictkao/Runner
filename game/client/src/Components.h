@@ -20,7 +20,7 @@ struct SpriteComponent {
 	float scale;
 	bool flipHorizontal;
 
-	SpriteComponent(SDL2::Texture, float w, float h);
+	SpriteComponent(SDL2::Texture, Vector2Df size);
 	SpriteComponent(SDL2::Texture, float w, float h, float scale);
 };
 
