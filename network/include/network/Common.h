@@ -42,26 +42,15 @@ namespace network
 	/*
 	* Helper class to encode messages as ENet packets
 	*/
-	class MessageService
+	namespace MessageService
 	{
-	public:
-		int send(ENetPeer* peer, const Buffer& buffer)
-		{
-			ENetPacket* packet = createPacket(buffer);
-			return enet_peer_send(peer, 0, packet);
-		}
+		int send(ENetPeer* peer, const Buffer& buffer);
 
-	private:
 		/*
 		* Note: this method is not thread-safe.
 		* Caller is responsible for de-allocating packet memory
 		*/
-		ENetPacket* createPacket(const Buffer& buffer)
-		{
-			auto data = buffer.data();
-			auto size = buffer.size();
-			return enet_packet_create(data, size, ENET_PACKET_FLAG_RELIABLE); // TODO: is this flag necessary?
-		}
+		ENetPacket* createPacket(const Buffer& buffer);
 	};
 
 	template <typename _MsgType>
@@ -110,5 +99,11 @@ namespace network
 	private:
 		State _state;
 		std::mutex _mux;
+	};
+
+	struct EmptyConnectionCallback
+	{
+		void onConnected(ENetEvent* event) {}
+		void onDisconnected(ENetEvent* event) {}
 	};
 }

@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 			auto clients = server.getClients().toList();
 			debug::log("[Server] Pinging %d clients", clients.size());
 			for (auto client : clients)
-				server.send(client, buffer);
+				network::MessageService::send(client, buffer);
 		}
 	});
 	std::thread read_thread([&]() {
@@ -42,9 +42,9 @@ int main(int argc, char* argv[])
 				{
 				case common::messages::Type::PLAYER_JOIN:
 				{
-					int id = game.addPlayer(msg.source);
+					int id = game.addPlayer(msg.source); // TODO: how to handle player disconnection?
 					auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(common::messages::PlayerJoin(id));
-					server.send(msg.source, buffer);
+					network::MessageService::send(msg.source, buffer);
 				}
 				break;
 				}

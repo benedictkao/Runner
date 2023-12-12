@@ -12,13 +12,14 @@ namespace network
 		constexpr int DEFAULT_READ_INTERVAL { 20 };
 	}
 
+	template <typename _ConnectionCallback = EmptyConnectionCallback>
 	class Client
 	{
 	public:
 		typedef ConcurrentQueue<InMessage> InputQueue;
 
 	public:
-		Client(const char* serverName, int port);
+		Client(const char* serverName, int port, _ConnectionCallback& callback);
 
 	public:
 		/*
@@ -47,9 +48,11 @@ namespace network
 	private:
 		Host _client;
 		ENetPeer* _server;
+		_ConnectionCallback& _callback;
 		ENetAddress _serverAddress;
 		Connection _connection;
-		MessageService _msgService;
 		InputQueue _readQueue;
 	};
 }
+
+#include "Client.tpp"

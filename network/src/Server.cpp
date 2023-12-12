@@ -54,9 +54,3 @@ ConcurrentSet<ENetPeer*>& network::Server::getClients()
 {
 	return _clients;
 }
-
-void network::Server::send(ENetPeer* client, const Buffer& buffer)
-{
-	// TODO: consider adding safety check that client is connected
-	_msgService.send(client, buffer);
-}

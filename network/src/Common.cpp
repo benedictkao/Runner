@@ -60,3 +60,16 @@ void network::Connection::setState(State state)
 	std::lock_guard lg(_mux);
 	_state = state;
 }
+
+int network::MessageService::send(ENetPeer* peer, const Buffer& buffer)
+{
+	ENetPacket* packet = createPacket(buffer);
+	return enet_peer_send(peer, 0, packet);
+}
+
+ENetPacket* network::MessageService::createPacket(const Buffer& buffer)
+{
+	auto data = buffer.data();
+	auto size = buffer.size();
+	return enet_packet_create(data, size, ENET_PACKET_FLAG_RELIABLE); // TODO: is this flag necessary?
+}

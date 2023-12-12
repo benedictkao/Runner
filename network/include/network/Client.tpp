@@ -1,14 +1,17 @@
-#include "network/Client.h"
-
 #include "logging/Logger.h"
 
-network::Client::Client(const char* serverName, int port): _client(NULL, 1), _server(nullptr)
+template <typename _ConnectionCallback>
+network::Client<_ConnectionCallback>::Client(const char* serverName, int port, _ConnectionCallback& callback):
+	_client(NULL, 1),
+	_server(nullptr),
+	_callback(callback)
 {
 	enet_address_set_host(&_serverAddress, serverName);
 	_serverAddress.port = port;
 }
 
-bool network::Client::connect(int timeout, int interval)
+template <typename _ConnectionCallback>
+bool network::Client<_ConnectionCallback>::connect(int timeout, int interval)
 {
 	if (_connection.getState() != Connection::State::DISCONNECTED)
 		return false;
@@ -39,7 +42,8 @@ bool network::Client::connect(int timeout, int interval)
 	return expected;
 }
 
-void network::Client::disconnect()
+template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::disconnect()
 {
 	debug::log("[Client] Manually disconnecting...");
 	if (!isConnected())
@@ -58,40 +62,49 @@ void network::Client::disconnect()
 	// If it is not, then it will still be updated after timeout anyway
 }
 
-bool network::Client::isConnected()
+template <typename _ConnectionCallback>
+bool network::Client<_ConnectionCallback>::isConnected()
 {
 	return _connection.getState() == Connection::State::CONNECTED;
 }
 
-network::Client::InputQueue& network::Client::getInQueue()
+template <typename _ConnectionCallback>
+network::Client<_ConnectionCallback>::InputQueue& network::Client<_ConnectionCallback>::getInQueue()
 {
 	return _readQueue;
 }
 
-void network::Client::onConnected(ENetEvent* event)
+template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::onConnected(ENetEvent* event)
 {
 	debug::log("[Client] Connected to server!");
+	_callback.onConnected(event);
 	_connection.setState(Connection::State::CONNECTED);
 }
 
-bool network::Client::onDisconnected(ENetEvent* event)
+template <typename _ConnectionCallback>
+bool network::Client<_ConnectionCallback>::onDisconnected(ENetEvent* event)
 {
 	debug::log("[Client] Disonnected to server");
+	_callback.onDisconnected(event);
 	return true;
 }
 
-ENetHost* network::Client::getHost() const
+template <typename _ConnectionCallback>
+ENetHost* network::Client<_ConnectionCallback>::getHost() const
 {
 	return _client.getHost();
 }
 
-void network::Client::send(const Buffer& buffer)
+template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::send(const Buffer& buffer)
 {
 	if (isConnected())
-		_msgService.send(_server, buffer);	// FIXME: should this be on a separate thread?
+		MessageService::send(_server, buffer);	// FIXME: should this be on a separate thread?
 }
 
-void network::Client::readEvents(int timeout, int interval)
+template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::readEvents(int timeout, int interval)
 {
 	EventReader reader;
 	auto lastUpdated = network::currentTime();
@@ -111,7 +124,8 @@ void network::Client::readEvents(int timeout, int interval)
 	}
 }
 
-void network::Client::resetConnection()
+template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::resetConnection()
 {
 	enet_peer_reset(_server);
 	_connection.setState(Connection::State::DISCONNECTED);

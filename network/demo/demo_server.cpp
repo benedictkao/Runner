@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 			{
 				std::cout << "[main] Ping received from " << inMsg.source << ", returning pong" << std::endl;
 				auto& buffer = writer.writeToBuffer<messages::Type::PING>();
-				server.send(inMsg.source, buffer);
+				network::MessageService::send(inMsg.source, buffer);
 			}
 			break;
 			case messages::Type::CHAT_MSG:
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 					if (client == inMsg.source)
 						continue;
 					auto& buffer = writer.writeToBuffer<messages::Type::CHAT_MSG>(msg);
-					server.send(client, buffer);
+					network::MessageService::send(client, buffer);
 				}
 			}
 			break;

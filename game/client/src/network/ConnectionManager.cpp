@@ -8,7 +8,7 @@
 static constexpr auto SERVER_ADDRESS { "127.0.0.1" };
 static constexpr auto TIMEOUT{ common::PING_INTERVAL_MILLIS * 2 };
 
-ConnectionManager::ConnectionManager(): _client(SERVER_ADDRESS, common::PORT_NUMBER), _active(false) {}
+ConnectionManager::ConnectionManager(): _client(SERVER_ADDRESS, common::PORT_NUMBER, *this), _active(false) {}
 
 void ConnectionManager::connect()
 {
@@ -48,6 +48,13 @@ void ConnectionManager::processReceivedMessages()
 			debug::log("[ConnectionManager] Server ping");
 		}
 		break;
+		case common::messages::Type::PLAYER_JOIN:
+		{
+			common::messages::PlayerJoin payload;
+			buffer.read(payload);
+			debug::log("[ConnectionManager] Player Joined! Assigned id %d", payload.playerId);
+		}
+		break;
 		default:
 		{
 			debug::log("[ConnectionManager] Unknown message received: %d", type);
@@ -55,6 +62,18 @@ void ConnectionManager::processReceivedMessages()
 		break;
 		}
 	}
+}
+
+void ConnectionManager::onConnected(ENetEvent* event)
+{
+	debug::log("[ConnectionManager] Connected!");
+	network::BufferWriter<common::messages::Type> writer;
+	network::MessageService::send(event->peer, writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>());
+}
+
+void ConnectionManager::onDisconnected(ENetEvent* event)
+{
+	debug::log("[ConnectionManager] Disconnected!");
 }
 
 void ConnectionManager::sendUpdate()

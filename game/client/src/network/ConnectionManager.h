@@ -14,7 +14,13 @@ public:
 	void sendUpdate();
 	void close();
 
+	/*
+	* Interface methods, do not remove
+	*/
+	void onConnected(ENetEvent* event);
+	void onDisconnected(ENetEvent* event);
+
 private:
-	network::Client _client;
+	network::Client<ConnectionManager> _client;
 	bool _active;
 };

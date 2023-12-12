@@ -3,7 +3,7 @@
 #include <thread>
 #include <string>
 
-#include "network/Client.h"
+#include <network/Client.h>
 #include "demo_messages.h"
 
 static constexpr auto HOST_NAME{ "127.0.0.1" };
@@ -14,7 +14,7 @@ int id = -1;
 bool quit = false;
 network::TimeUnit lastPing;
 
-void stayConnected(network::Client& client) 
+void stayConnected(network::Client<>& client) 
 {
 	while (!quit)
 	{
@@ -33,7 +33,7 @@ void stayConnected(network::Client& client)
 	}
 }
 
-void sendChatMsg(network::Client& client)
+void sendChatMsg(network::Client<>& client)
 {
 	std::string in;
 	network::BufferWriter<messages::Type> writer;
@@ -70,7 +70,8 @@ int main(int argc, char* argv[])
 	}
 	atexit(enet_deinitialize);
 	
-	network::Client client(HOST_NAME, PORT);
+	network::EmptyConnectionCallback callback;
+	network::Client<> client(HOST_NAME, PORT, callback);
 
 	std::thread read_thread(stayConnected, std::ref(client));
 	std::thread ping_thread([&]() {

@@ -29,7 +29,6 @@ namespace network
 		void run(int interval);
 		bool isConnected(ENetPeer* client);
 		ConcurrentSet<ENetPeer*>& getClients();
-		void send(ENetPeer* client, const Buffer&);
 
 	private:
 		inline Host createHost(int port, int maxConnections) const;
@@ -38,6 +37,5 @@ namespace network
 		Host _host;
 		ConcurrentSet<ENetPeer*> _clients;
 		ConcurrentQueue<InMessage> _readQueue;
-		MessageService _msgService;
 	};
 }
