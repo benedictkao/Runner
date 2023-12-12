@@ -1,9 +1,9 @@
-#include <SDL.h>
+#include "sdl/SDL.h"
+
 #include <SDL_image.h>
 #include <logging/Logger.h>
 
 #include "Constants.h"
-#include "SDL.h"
 
 Uint32 SDL2::init() {
 	return SDL_Init(SDL_INIT_VIDEO);

@@ -1,10 +1,12 @@
 #include "Scene.h"
-#include "Components.h"
-#include "Constants.h"
-#include "SDL.h"
-#include "math/Math.h"
+
 #include <logging/Logger.h>
 #include <vector>
+
+#include "Components.h"
+#include "Constants.h"
+#include "sdl/SDL.h"
+#include "math/Math.h"
 
 constexpr auto PLAYER_SPEED{ 6.0f };
 constexpr auto JUMP_SPEED{ 24.0f };
@@ -13,8 +15,9 @@ constexpr auto ANIMATION_PERIOD{ 4 };
 Scene::Scene(
 	SDL2::Renderer renderer,
 	PlayerManager& pManager,
-	TextureRepo& texRepo
-) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo) {}
+	TextureRepo& texRepo,
+	network::Client& client
+) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _client(client) {}
 
 void Scene::init(SceneInfo data) {
 	_player = _registry.create();
@@ -62,14 +65,20 @@ void Scene::init(SceneInfo data) {
 	}
 }
 
-void Scene::update() {
-	updateBackground();
+void Scene::update() 
+{
 	updatePlayer();
 	updateVelocities();
 	updateCollisions();
 	updateTransforms();
 	updateAnimations();
+}
+
+void Scene::render()
+{
+	updateBackground();
 	updateSprites();
+	updateOverlay();
 }
 
 void Scene::updateBackground() {
@@ -199,6 +208,17 @@ void Scene::updateAnimations() {
 
 		++animation.current;
 	}
+}
+
+void Scene::updateOverlay()
+{
+	auto tex = _texRepo.loadTexture(
+		_client.isConnected() ? TextureIds::ICON_CONNECTED : TextureIds::ICON_DISCONNECTED
+	);
+	float padding = 12.0f;
+	float iconSize = 24.0f;
+	SDL2::Rect dest = { padding, constants::WINDOW_HEIGHT - iconSize - padding, iconSize, iconSize };
+	SDL2::blit(_renderer, tex, dest);
 }
 
 void Scene::updateSprites() {

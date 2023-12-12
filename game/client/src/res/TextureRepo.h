@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sdl/SDL.h"
-#include "ResIds.h"
+#include "res/ResIds.h"
 #include <unordered_map>
 
 class TextureRepo {

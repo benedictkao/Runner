@@ -1,7 +1,7 @@
 #include "SceneLoader.h"
 
 #include "Constants.h"
-#include "ResIds.h"
+#include "res/ResIds.h"
 
 constexpr auto TILE_SIZE{ 32.0f };
 

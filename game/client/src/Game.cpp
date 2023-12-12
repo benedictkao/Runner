@@ -38,13 +38,12 @@ int Game::run() {
 	std::thread net_thread([&]() {
 		client.connect();
 	});
-
 	_running = true;
 
 	TextureRepo texRepo(_renderer);
 	MKInputManager inputManager;
 	PlayerManager pManager(inputManager);
-	Scene scene(_renderer, pManager, texRepo);
+	Scene scene(_renderer, pManager, texRepo, client);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 	SDL_SetCursor(cursor);
 	
@@ -61,6 +60,10 @@ int Game::run() {
 		// calculations
 		scene.update();
 
+		// ui update
+		scene.render();
+
+		// actual render
 		SDL2::presentScene(_renderer);
 
 		Uint64 sleepTime = calculateSleepTime(frameStart);

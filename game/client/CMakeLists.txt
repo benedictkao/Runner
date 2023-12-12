@@ -3,7 +3,8 @@ add_executable(client
 
 	"src/Game.cpp"
 	"src/Components.cpp"
-	"src/TextureRepo.cpp"
+
+	"src/res/TextureRepo.cpp"
 
 	"src/scene/Scene.cpp"
 	"src/scene/SceneLoader.cpp"
