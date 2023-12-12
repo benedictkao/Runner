@@ -2,16 +2,15 @@
 
 #include <thread>
 
-#include "common/Network.h"
-#include "logging/Logger.h"
-#include "network/Client.h"
+#include <logging/Logger.h>
 
-#include "sdl/SDL.h"
+#include "input/InputManager.h"
 #include "math/Math.h"
+#include "network/ConnectionManager.h"
+#include "player/PlayerManager.h"
 #include "scene/Scene.h"
 #include "scene/SceneLoader.h"
-#include "player/PlayerManager.h"
-#include "input/InputManager.h"
+#include "sdl/SDL.h"
 
 static constexpr auto TARGET_FPS{ 60 };
 static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
@@ -34,16 +33,16 @@ int Game::run() {
 
 	debug::log("[SDL] Init success!");
 
-	network::Client client("127.0.0.1", common::PORT_NUMBER);
+	ConnectionManager connMgr;
 	std::thread net_thread([&]() {
-		client.connect();
+		connMgr.connect();
 	});
 	_running = true;
 
 	TextureRepo texRepo(_renderer);
 	MKInputManager inputManager;
 	PlayerManager pManager(inputManager);
-	Scene scene(_renderer, pManager, texRepo, client);
+	Scene scene(_renderer, pManager, texRepo, connMgr);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 	SDL_SetCursor(cursor);
 	
@@ -54,14 +53,16 @@ int Game::run() {
 
 		Uint64 frameStart = SDL2::elapsedTimeInMillis();
 
+		connMgr.processReceivedMessages();
+
 		SDL2::prepareScene(_renderer);
 		_running = inputManager.readInput();
 
 		// calculations
-		scene.update();
+		scene.updateLogic();
 
-		// ui update
-		scene.render();
+		// ui updates
+		scene.updateTextures();
 
 		// actual render
 		SDL2::presentScene(_renderer);
@@ -70,7 +71,7 @@ int Game::run() {
 		SDL2::delay(static_cast<Uint32>(sleepTime));
 	}
 
-	client.disconnect();
+	connMgr.close();
 	texRepo.clear();
 	net_thread.join();
 	SDL2::close(_window, _renderer);

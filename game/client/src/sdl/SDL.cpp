@@ -66,7 +66,7 @@ void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& des
 	//if (status != 0)
 	//	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION,
 	//		SDL_LOG_PRIORITY_INFO,
-	//		"Failed to render. Error: %s",
+	//		"Failed to updateTextures. Error: %s",
 	//		SDL_GetError());
 	SDL_RenderCopyEx(renderer, tex, &src, &dest, 0, NULL, flipFlags);
 }

@@ -50,6 +50,14 @@ public:
 		return size;
 	}
 
+	bool empty()
+	{
+		_mux.lock();
+		bool isEmpty = _queue.empty();
+		_mux.unlock();
+		return isEmpty;
+	}
+
 private:
 	_MutexType _mux;
 	std::queue<T> _queue;

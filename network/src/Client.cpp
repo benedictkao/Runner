@@ -88,7 +88,7 @@ ENetHost* network::Client::getHost() const
 void network::Client::send(const Buffer& buffer)
 {
 	if (isConnected())
-		_msgService.send(_server, buffer);
+		_msgService.send(_server, buffer);	// FIXME: should this be on a separate thread?
 }
 
 void network::Client::readEvents(int timeout, int interval)

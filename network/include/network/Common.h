@@ -71,12 +71,14 @@ namespace network
 		template <_MsgType type>
 		const Buffer& writeToBuffer()
 		{
+			_writeBuffer.clear();
 			return _writeBuffer.write(type);
 		}
 
 		template <_MsgType type, typename _MsgBody>
 		const Buffer& writeToBuffer(const _MsgBody& body)
 		{
+			_writeBuffer.clear();
 			return _writeBuffer
 				.write(body)
 				.write(type);

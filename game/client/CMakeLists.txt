@@ -6,6 +6,8 @@ add_executable(client
 
 	"src/res/TextureRepo.cpp"
 
+	"src/network/ConnectionManager.cpp"
+
 	"src/scene/Scene.cpp"
 	"src/scene/SceneLoader.cpp"
 
@@ -20,7 +22,7 @@ add_executable(client
 	"src/input/InputManager.cpp"
 	"src/input/MouseHandler.cpp"
 	"src/input/InputState.cpp"
- )
+)
 target_link_libraries(client
 	PRIVATE
 		vendor.entt

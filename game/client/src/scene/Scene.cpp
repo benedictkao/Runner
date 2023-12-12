@@ -16,8 +16,8 @@ Scene::Scene(
 	SDL2::Renderer renderer,
 	PlayerManager& pManager,
 	TextureRepo& texRepo,
-	network::Client& client
-) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _client(client) {}
+	ConnectionManager& connMgr
+) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _connMgr(connMgr) {}
 
 void Scene::init(SceneInfo data) {
 	_player = _registry.create();
@@ -65,18 +65,18 @@ void Scene::init(SceneInfo data) {
 	}
 }
 
-void Scene::update() 
+void Scene::updateLogic() 
 {
 	updatePlayer();
 	updateVelocities();
 	updateCollisions();
 	updateTransforms();
-	updateAnimations();
 }
 
-void Scene::render()
+void Scene::updateTextures()
 {
 	updateBackground();
+	updateAnimations();
 	updateSprites();
 	updateOverlay();
 }
@@ -213,7 +213,7 @@ void Scene::updateAnimations() {
 void Scene::updateOverlay()
 {
 	auto tex = _texRepo.loadTexture(
-		_client.isConnected() ? TextureIds::ICON_CONNECTED : TextureIds::ICON_DISCONNECTED
+		_connMgr.isConnected() ? TextureIds::ICON_CONNECTED : TextureIds::ICON_DISCONNECTED
 	);
 	float padding = 12.0f;
 	float iconSize = 24.0f;

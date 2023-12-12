@@ -1,8 +1,8 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <network/Client.h>
 
+#include "network/ConnectionManager.h"
 #include "player/PlayerManager.h"
 #include "res/TextureRepo.h"
 #include "sdl/SDL.h"
@@ -14,17 +14,17 @@ private:
 	SDL2::Renderer _renderer;
 	PlayerManager& _pManager;
 	TextureRepo& _texRepo;
-	network::Client& _client;	// TODO: should probably have a wrapper around this!
+	ConnectionManager& _connMgr;
 	entt::registry _registry;
 	entt::entity _player;
 	entt::entity _background;
 
 public:
-	Scene(SDL2::Renderer, PlayerManager&, TextureRepo&, network::Client&);
+	Scene(SDL2::Renderer, PlayerManager&, TextureRepo&, ConnectionManager&);
 
 	void init(SceneInfo data);
-	void update();
-	void render();
+	void updateLogic();
+	void updateTextures();
 
 private:
 
