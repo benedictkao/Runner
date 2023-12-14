@@ -1,11 +1,12 @@
 #pragma once
 
 #include <network/Client.h>
+#include <player/PlayerManager.h>
 
 class ConnectionManager
 {
 public:
-	ConnectionManager();
+	ConnectionManager(PlayerManager& playerManager);
 
 public:
 	void connect();
@@ -22,5 +23,6 @@ public:
 
 private:
 	network::Client<ConnectionManager> _client;
+	PlayerManager& _playerManager;
 	bool _active;
 };

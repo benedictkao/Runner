@@ -17,7 +17,7 @@ namespace common
 	{
 		enum class Type : uint32_t
 		{
-			PING, PLAYER_UPDATE, PLAYER_JOIN
+			PING, PLAYER_UPDATE, PLAYER_JOIN, PLAYER_RECONNECT
 		};
 
 		struct PlayerUpdate
@@ -28,7 +28,7 @@ namespace common
 			Vector2Df speed;
 		};
 
-		struct PlayerJoin
+		struct JoinDetails
 		{
 			int playerId;
 		};

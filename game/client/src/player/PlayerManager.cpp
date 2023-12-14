@@ -12,4 +12,14 @@ const PlayerState& PlayerManager::getPlayerState() {
 	return _state;
 }
 
-PlayerManager::PlayerManager(const InputManager& input) : _input(input), _state({ 0,0, false }) {}
+void PlayerManager::setPlayerId(int id)
+{
+	_playerGameId = id;
+}
+
+int PlayerManager::getPlayerId() const
+{
+	return _playerGameId;
+}
+
+PlayerManager::PlayerManager(const InputManager& input) : _input(input), _state({ 0,0, false }), _playerGameId(-1) {}

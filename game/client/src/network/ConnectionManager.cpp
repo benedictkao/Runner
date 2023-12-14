@@ -8,7 +8,11 @@
 static constexpr auto SERVER_ADDRESS { "127.0.0.1" };
 static constexpr auto TIMEOUT{ common::PING_INTERVAL_MILLIS * 2 };
 
-ConnectionManager::ConnectionManager(): _client(SERVER_ADDRESS, common::PORT_NUMBER, *this), _active(false) {}
+ConnectionManager::ConnectionManager(PlayerManager& playerManager): 
+	_client(SERVER_ADDRESS, common::PORT_NUMBER, *this),
+	_active(false), 
+	_playerManager(playerManager) 
+{}
 
 void ConnectionManager::connect()
 {
@@ -50,9 +54,10 @@ void ConnectionManager::processReceivedMessages()
 		break;
 		case common::messages::Type::PLAYER_JOIN:
 		{
-			common::messages::PlayerJoin payload;
+			common::messages::JoinDetails payload;
 			buffer.read(payload);
 			debug::log("[ConnectionManager] Player Joined! Assigned id %d", payload.playerId);
+			_playerManager.setPlayerId(payload.playerId);
 		}
 		break;
 		default:

@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	std::thread read_thread([&]() {
 		auto& inMessages = server.getInQueue();
 		network::BufferWriter<common::messages::Type> writer;
-		// TODO: add support for multiple games
+		// TODO: add support for multiple games?
 		Game game;
 		while (true)
 		{
@@ -43,8 +43,15 @@ int main(int argc, char* argv[])
 				case common::messages::Type::PLAYER_JOIN:
 				{
 					int id = game.addPlayer(msg.source); // TODO: how to handle player disconnection?
-					auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(common::messages::PlayerJoin(id));
+					auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(common::messages::JoinDetails(id));
 					network::MessageService::send(msg.source, buffer);
+				}
+				break;
+				case common::messages::Type::PLAYER_RECONNECT:
+				{
+					common::messages::JoinDetails payload;
+					msg.raw.read(payload);
+					game.onReconnect(payload.playerId, msg.source);
 				}
 				break;
 				}

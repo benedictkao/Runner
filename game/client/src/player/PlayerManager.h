@@ -4,14 +4,19 @@
 #include "input/InputManager.h"
 
 class PlayerManager {
-private:
-	const InputManager& _input;
-	PlayerState _state;	// TODO: make this unordered_map for multiplayer
+public:		
+	PlayerManager(const InputManager&);
 
 public:
 	void updatePlayerState();
 	void setPlayerOnGround(bool);
 	const PlayerState& getPlayerState();
 
-	PlayerManager(const InputManager&);
+	void setPlayerId(int id);
+	int getPlayerId() const;
+	
+private:
+	const InputManager& _input;
+	PlayerState _state;	// TODO: make this unordered_map for multiplayer
+	int _playerGameId;
 };
