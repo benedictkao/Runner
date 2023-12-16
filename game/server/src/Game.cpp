@@ -13,3 +13,8 @@ void Game::onReconnect(int playerId, ENetPeer* peer)
 {
 	_players[playerId] = peer;
 }
+
+void Game::onDisconnect(int playerId)
+{
+	_players[playerId] = nullptr;
+}

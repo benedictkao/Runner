@@ -16,6 +16,7 @@ public:
 public:
 	int addPlayer(ENetPeer*);
 	void onReconnect(int playerId, ENetPeer* peer);
+	void onDisconnect(int playerId);
 
 private:
 	std::vector<ENetPeer*> _players;
