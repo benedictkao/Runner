@@ -3,7 +3,6 @@ set (LIB_NAME "lib.network")
 add_library(${LIB_NAME} STATIC)
 target_sources(${LIB_NAME} 
 	PRIVATE
-		"src/Server.cpp"
 		"src/Buffer.cpp"
 		"src/Common.cpp"
 )

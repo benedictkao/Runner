@@ -1,10 +1,21 @@
-#include "logging/Logger.h"
+#include <logging/Logger.h>
+
+template <typename _ConnectionCallback>
+network::Client<_ConnectionCallback>::Client(const char* serverName, int port):
+	_client(NULL, 1),
+	_server(nullptr),
+	_callback(nullptr)
+{
+	static_assert(std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value, "Callback reference must be given for non-empty callback");
+	enet_address_set_host(&_serverAddress, serverName);
+	_serverAddress.port = port;
+}
 
 template <typename _ConnectionCallback>
 network::Client<_ConnectionCallback>::Client(const char* serverName, int port, _ConnectionCallback& callback):
 	_client(NULL, 1),
 	_server(nullptr),
-	_callback(callback)
+	_callback(&callback)
 {
 	enet_address_set_host(&_serverAddress, serverName);
 	_serverAddress.port = port;
@@ -78,7 +89,8 @@ template <typename _ConnectionCallback>
 void network::Client<_ConnectionCallback>::onConnected(ENetEvent* event)
 {
 	debug::log("[Client] Connected to server!");
-	_callback.onConnected(event);
+	if constexpr (!std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value)
+		_callback->onConnected(event);
 	_connection.setState(Connection::State::CONNECTED);
 }
 
@@ -86,7 +98,8 @@ template <typename _ConnectionCallback>
 bool network::Client<_ConnectionCallback>::onDisconnected(ENetEvent* event)
 {
 	debug::log("[Client] Disonnected to server");
-	_callback.onDisconnected(event);
+	if constexpr (!std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value)
+		_callback->onDisconnected(event);
 	return true;
 }
 

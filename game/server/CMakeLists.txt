@@ -1,6 +1,7 @@
 add_executable(server
 	"src/main.cpp"
 	"src/Game.cpp"
+	"src/Server.cpp"
 )
 target_link_libraries(server
 	PRIVATE

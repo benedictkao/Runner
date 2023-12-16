@@ -70,8 +70,7 @@ int main(int argc, char* argv[])
 	}
 	atexit(enet_deinitialize);
 	
-	network::EmptyConnectionCallback callback;
-	network::Client<> client(HOST_NAME, PORT, callback);
+	network::Client<> client(HOST_NAME, PORT);
 
 	std::thread read_thread(stayConnected, std::ref(client));
 	std::thread ping_thread([&]() {

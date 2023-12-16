@@ -11,10 +11,12 @@
 
 namespace network
 {
+	template <typename _ConnectionCallback = EmptyConnectionCallback>
 	class Server
 	{
 	public:
 		Server(int port, int maxConnections);
+		Server(int port, int maxConnections, _ConnectionCallback& callback);
 
 	/*
 	* Interface methods for EventReader::read template arg _Connection
@@ -37,5 +39,8 @@ namespace network
 		Host _host;
 		ConcurrentSet<ENetPeer*> _clients;
 		ConcurrentQueue<InMessage> _readQueue;
+		_ConnectionCallback* _callback;
 	};
 }
+
+#include "Server.tpp"

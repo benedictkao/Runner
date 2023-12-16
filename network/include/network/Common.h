@@ -101,9 +101,5 @@ namespace network
 		std::mutex _mux;
 	};
 
-	struct EmptyConnectionCallback
-	{
-		void onConnected(ENetEvent* event) {}
-		void onDisconnected(ENetEvent* event) {}
-	};
+	struct EmptyConnectionCallback {};
 }

@@ -19,6 +19,7 @@ namespace network
 		typedef ConcurrentQueue<InMessage> InputQueue;
 
 	public:
+		Client(const char* serverName, int port);
 		Client(const char* serverName, int port, _ConnectionCallback& callback);
 
 	public:
@@ -48,7 +49,7 @@ namespace network
 	private:
 		Host _client;
 		ENetPeer* _server;
-		_ConnectionCallback& _callback;
+		_ConnectionCallback* _callback;
 		ENetAddress _serverAddress;
 		Connection _connection;
 		InputQueue _readQueue;
