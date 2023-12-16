@@ -43,7 +43,8 @@ int main(int argc, char* argv[])
 				case common::messages::Type::PLAYER_JOIN:
 				{
 					int id = game.addPlayer(msg.source); // TODO: how to handle player disconnection?
-					auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(common::messages::JoinDetails(id));
+					common::messages::JoinDetails body = { id };
+					auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(body);
 					network::MessageService::send(msg.source, buffer);
 				}
 				break;
@@ -53,6 +54,8 @@ int main(int argc, char* argv[])
 					msg.raw.read(payload);
 					game.onReconnect(payload.playerId, msg.source);
 				}
+				break;
+				default:
 				break;
 				}
 			}

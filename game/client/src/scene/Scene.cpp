@@ -215,9 +215,10 @@ void Scene::updateOverlay()
 	auto tex = _texRepo.loadTexture(
 		_connMgr.isConnected() ? TextureIds::ICON_CONNECTED : TextureIds::ICON_DISCONNECTED
 	);
-	float padding = 12.0f;
-	float iconSize = 24.0f;
-	SDL2::Rect dest = { padding, constants::WINDOW_HEIGHT - iconSize - padding, iconSize, iconSize };
+	int padding = 12;
+	int iconSize = 24;
+	int y = constants::WINDOW_HEIGHT - iconSize - padding;
+	SDL2::Rect dest = { padding, y, iconSize, iconSize };
 	SDL2::blit(_renderer, tex, dest);
 }
 

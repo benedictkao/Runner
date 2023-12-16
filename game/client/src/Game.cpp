@@ -33,15 +33,15 @@ int Game::run() {
 
 	debug::log("[SDL] Init success!");
 
-	ConnectionManager connMgr;
+	TextureRepo texRepo(_renderer);
+	MKInputManager inputManager;
+	PlayerManager pManager(inputManager);
+	ConnectionManager connMgr(pManager);
 	std::thread net_thread([&]() {
 		connMgr.connect();
 	});
 	_running = true;
 
-	TextureRepo texRepo(_renderer);
-	MKInputManager inputManager;
-	PlayerManager pManager(inputManager);
 	Scene scene(_renderer, pManager, texRepo, connMgr);
 	SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 	SDL_SetCursor(cursor);

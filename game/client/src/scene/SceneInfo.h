@@ -34,7 +34,7 @@ struct MapInfo
     WallInfo walls;
 };
 
-struct Object
+struct SceneObject
 {
     Rect2Df transform;
     SpriteInfo sprite;
@@ -49,6 +49,6 @@ struct PlayerInfo
 struct SceneInfo
 {
     MapInfo mapInfo;
-    std::vector<Object> objects;
+    std::vector<SceneObject> objects;
     PlayerInfo playerInfo;
 };
