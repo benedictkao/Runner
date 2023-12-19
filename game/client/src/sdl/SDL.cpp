@@ -21,8 +21,8 @@ Uint32 SDL2::pollEvent(SDL2::Event* event) {
 	return SDL_PollEvent(event);
 }
 
-Vector2D SDL2::getMouseCoordinates() {
-	Vector2D result;
+common::Vector2D SDL2::getMouseCoordinates() {
+	common::Vector2D result;
 	SDL_GetMouseState(&result.x, &result.y);
 	return result;
 }

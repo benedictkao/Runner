@@ -1,8 +1,5 @@
 #include "ConnectionManager.h"
 
-//#include <thread>
-
-#include <common/Network.h>
 #include <logging/Logger.h>
 
 static constexpr auto SERVER_ADDRESS { "127.0.0.1" };
@@ -73,7 +70,7 @@ void ConnectionManager::onConnected(ENetEvent* event)
 {
 	debug::log("[ConnectionManager] Connected!");
 	network::BufferWriter<common::messages::Type> writer;
-	network::MessageService::send(event->peer, writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>());
+	_client.send(writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>());
 }
 
 void ConnectionManager::onDisconnected(ENetEvent* event)
@@ -81,13 +78,22 @@ void ConnectionManager::onDisconnected(ENetEvent* event)
 	debug::log("[ConnectionManager] Disconnected!");
 }
 
-void ConnectionManager::sendUpdate()
-{
-
-}
-
 void ConnectionManager::close()
 {
 	_active = false;
 	_client.disconnect();
+}
+
+template <common::messages::Type _type>
+void ConnectionManager::send()
+{
+	network::BufferWriter<common::messages::Type> writer;
+	_client.send(writer.writeToBuffer<_type>());
+}
+
+template <common::messages::Type _type, typename _Body>
+void ConnectionManager::send(const _Body& body)
+{
+	network::BufferWriter<common::messages::Type> writer;
+	_client.send(writer.writeToBuffer<_type>(body));
 }

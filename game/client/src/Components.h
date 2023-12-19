@@ -1,7 +1,8 @@
 #pragma once
 
+#include <common/Geometry.h>
+
 #include "sdl/SDL.h"
-#include "math/Geometry.h"
 
 struct TagComponent {
 	const char* tag;
@@ -10,18 +11,19 @@ struct TagComponent {
 };
 
 struct TransformComponent {
-	Rect2Df rect;
+	common::Rect2Df rect;
 };
 
 struct SpriteComponent {
 	SDL2::Texture tex;
-	Rect2Df srcRect; // srcRect in the sprite pack
-	Vector2Df offset; // offset from hit box
+	common::Rect2Df srcRect; // srcRect in the sprite pack
+	common::Vector2Df offset; // offset from hit box
 	float scale;
 	bool flipHorizontal;
 
-	SpriteComponent(SDL2::Texture, Vector2Df size);
-	SpriteComponent(SDL2::Texture, float w, float h, float scale);
+	SpriteComponent(common::Vector2Df size);
+	SpriteComponent(SDL2::Texture, common::Vector2Df size);
+	SpriteComponent(SDL2::Texture, common::Vector2Df size, float scale);
 };
 
 struct AnimationComponent {
@@ -33,7 +35,7 @@ struct AnimationComponent {
 };
 
 struct VelocityComponent {
-	Vector2Df vector;
+	common::Vector2Df vector;
 
 	VelocityComponent();
 };

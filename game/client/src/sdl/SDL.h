@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL.h>
-#include "math/Geometry.h"
+#include <common/Geometry.h>
 
 namespace SDL2 {
 	typedef SDL_Window* Window;
@@ -22,7 +22,7 @@ namespace SDL2 {
 
 	Uint32 pollEvent(Event*);
 
-	Vector2D getMouseCoordinates();
+	common::Vector2D getMouseCoordinates();
 
 	Uint64 elapsedTimeInMillis();
 

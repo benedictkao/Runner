@@ -3,11 +3,14 @@
 
 TagComponent::TagComponent(const char* tag) : tag(tag) {}
 
-SpriteComponent::SpriteComponent(SDL2::Texture tex, Vector2Df size)
+SpriteComponent::SpriteComponent(common::Vector2Df size)
+	: tex(0), srcRect({ 0, 0, size.x, size.y }), offset({ 0, 0 }), scale(1), flipHorizontal(false) {}
+
+SpriteComponent::SpriteComponent(SDL2::Texture tex, common::Vector2Df size)
 	: tex(tex), srcRect({ 0, 0, size.x, size.y }), offset({ 0, 0 }), scale(1), flipHorizontal(false) {}
 
-SpriteComponent::SpriteComponent(SDL2::Texture tex, float w, float h, float scale)
-	: tex(tex), srcRect({ 0, 0, w, h }), offset({ 0, 0 }), scale(scale), flipHorizontal(false) {}
+SpriteComponent::SpriteComponent(SDL2::Texture tex, common::Vector2Df size, float scale)
+	: tex(tex), srcRect({ 0, 0, size.x, size.y }), offset({ 0, 0 }), scale(scale), flipHorizontal(false) {}
 
 AnimationComponent::AnimationComponent(int period, int wavelength) : period(period), wavelength(wavelength), current(0) {}
 

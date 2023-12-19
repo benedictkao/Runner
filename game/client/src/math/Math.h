@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Geometry.h"
+#include <common/Geometry.h>
 #include "sdl/SDL.h"
 
 namespace math {
@@ -25,29 +25,29 @@ namespace math {
 		coerceAtMost(value, static_cast<T>(0));
 	}
 
-	SDL2::Rect toSDLRect(const Rect2Df&);
+	SDL2::Rect toSDLRect(const common::Rect2Df&);
 
 	bool rayVsRect(
-		const Vector2Df& origin, 
-		const Vector2Df& direction, 
-		const Rect2Df& target,
-		Vector2Df& contactPoint,
-		Vector2Df& contactNormal,
+		const common::Vector2Df& origin, 
+		const common::Vector2Df& direction, 
+		const common::Rect2Df& target,
+		common::Vector2Df& contactPoint,
+		common::Vector2Df& contactNormal,
 		float& contactTime
 	);
 
 	bool sweptRectVsRect(
-		const Rect2Df& movingRect,
-		const Vector2Df& arrows,
-		const Rect2Df& target,
-		Vector2Df& contactPoint,
-		Vector2Df& contactNormal,
+		const common::Rect2Df& movingRect,
+		const common::Vector2Df& arrows,
+		const common::Rect2Df& target,
+		common::Vector2Df& contactPoint,
+		common::Vector2Df& contactNormal,
 		float& contactTime
 	);
 
-	Vector2Df resolveSweptRectVsRect(
-		const Rect2Df& movingRect,
-		Vector2Df& arrows,
-		const Rect2Df& target
+	common::Vector2Df resolveSweptRectVsRect(
+		const common::Rect2Df& movingRect,
+		common::Vector2Df& arrows,
+		const common::Rect2Df& target
 	);
 }

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <vector>
-#include "math/Geometry.h"
+
+#include <common/Geometry.h>
 
 struct SpriteInfo
 {
-    unsigned int texId;
-    Vector2Df size;
+    unsigned int id;
+    common::Vector2Df size;
 };
 
 struct WallInfo
@@ -30,20 +31,20 @@ struct WallInfo
 struct MapInfo
 {
     SpriteInfo bg;
-    Vector2Df size;
+    common::Vector2Df size;
     WallInfo walls;
 };
 
 struct SceneObject
 {
-    Rect2Df transform;
+    common::Rect2Df transform;
     SpriteInfo sprite;
     bool hasCollision;
 };
 
 struct PlayerInfo
 {
-    Rect2Df transform;
+    common::Rect2Df transform;
 };
 
 struct SceneInfo

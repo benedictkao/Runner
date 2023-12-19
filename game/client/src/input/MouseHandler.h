@@ -1,12 +1,13 @@
 #pragma once
 
+#include <common/Geometry.h>
+
 #include "sdl/SDL.h"
-#include "math/Geometry.h"
 #include "InputState.h"
 
 class MouseHandler {
 private:
-	Vector2D _cursorPos;
+	common::Vector2D _cursorPos;
 
 public:
 	MouseHandler();

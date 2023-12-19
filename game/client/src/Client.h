@@ -2,14 +2,15 @@
 
 #include "sdl/SDL.h"
 
-class Game {
+class Client 
+{
 private:
 	SDL2::Window _window;
 	SDL2::Renderer _renderer;
 	bool _running;
 
 public:
-	Game();
+	Client();
 
 	int run();
 

@@ -1,7 +1,7 @@
 add_executable(client 
 	"src/main.cpp"
 
-	"src/Game.cpp"
+	"src/Client.cpp"
 	"src/Components.cpp"
 
 	"src/res/TextureRepo.cpp"
@@ -15,7 +15,7 @@ add_executable(client
 
 	"src/sdl/SDL.cpp"
 
-	"src/math/Geometry.cpp"
+	# "src/math/Geometry.cpp"
 	"src/math/Math.cpp"
 	
 	"src/input/KeyboardHandler.cpp"

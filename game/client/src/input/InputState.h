@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/Geometry.h"
+#include <common/Geometry.h>
 
 enum InputAction : unsigned int {
 	NONE = 0,
@@ -9,8 +9,8 @@ enum InputAction : unsigned int {
 
 class InputState {
 public:
-	Vector2D arrows;
-	Vector2D selectPos;
+	common::Vector2D arrows;
+	common::Vector2D selectPos;
 
 	InputState();
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/Geometry.h"
+#include <common/Geometry.h>
 
 //struct PlayerData
 //{
@@ -8,6 +8,6 @@
 //};
 
 struct PlayerState {
-	Vector2D movement;
+	common::Vector2D movement;
 	bool onGround;
 };

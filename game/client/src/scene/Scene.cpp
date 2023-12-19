@@ -19,29 +19,31 @@ Scene::Scene(
 	ConnectionManager& connMgr
 ) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _connMgr(connMgr) {}
 
-void Scene::init(SceneInfo data) {
+void Scene::init(const SceneInfo& data) {
 	_player = _registry.create();
+	const auto& playerInfo = data.playerInfo;
+	const auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
+	auto idle = _texRepo.loadTexture(spritePack.idle);
+	_texRepo.loadTexture(spritePack.run);
+	_texRepo.loadTexture(spritePack.jump);
 
-	auto sprite = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
-	_texRepo.loadTexture(TextureIds::PLAYER_RUN);
-	_texRepo.loadTexture(TextureIds::PLAYER_JUMP);
-
-	_registry.emplace<TransformComponent>(_player, data.playerInfo.transform);
-	_registry.emplace<SpriteComponent>(_player, sprite, 32, 32, 2)
-		.offset = { 6, 4 };
+	_registry.emplace<TransformComponent>(_player, playerInfo.transform);
+	// float scale = playerInfo.transform.size.x / spritePack.size.x;
+	_registry.emplace<SpriteComponent>(_player, idle, spritePack.size, 2)
+		.offset = spritePack.offset;
 	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
 	_registry.emplace<VelocityComponent>(_player);
 	_registry.emplace<GravityComponent>(_player);
 	_registry.emplace<TagComponent>(_player, "Player");
 
 	_background = _registry.create();
-	auto bg = _texRepo.loadTexture(data.mapInfo.bg.texId);
+	auto bg = _texRepo.loadTexture(data.mapInfo.bg.id);
 	_registry.emplace<SpriteComponent>(_background, bg, data.mapInfo.size);
 
 	for (auto& object : data.objects)
 	{
 		auto platform = _registry.create();
-		auto platformTex = _texRepo.loadTexture(object.sprite.texId);
+		auto platformTex = _texRepo.loadTexture(object.sprite.id);
 		_registry.emplace<TransformComponent>(platform, object.transform);
 		_registry.emplace<SpriteComponent>(platform, platformTex, object.sprite.size);
 		if (object.hasCollision)
@@ -59,10 +61,16 @@ void Scene::init(SceneInfo data) {
 	if (data.mapInfo.walls.right)
 	{
 		auto rWall = _registry.create();
-		_registry.emplace<TransformComponent>(rWall, constants::WINDOW_WIDTH, 0.0f, 1.0f, data.mapInfo.size.x);
+		_registry.emplace<TransformComponent>(rWall, data.mapInfo.size.x, 0.0f, 1.0f, data.mapInfo.size.y);
 		_registry.emplace<WallComponent>(rWall);
 		_registry.emplace<TagComponent>(rWall, "Right Wall");
 	}
+
+	// FIXME: hardcoded floor for now
+	auto floor = _registry.create();
+	_registry.emplace<TransformComponent>(floor, 0.0f, data.mapInfo.size.y, data.mapInfo.size.x, 1.0f);
+	_registry.emplace<WallComponent>(floor);
+	_registry.emplace<TagComponent>(floor, "Floor");
 }
 
 void Scene::updateLogic() 
@@ -94,15 +102,16 @@ void Scene::updatePlayer() {
 	int currMovement = _pManager.getPlayerState().movement.x;
 	auto& velo = _registry.get<VelocityComponent>(_player);
 	velo.vector.x = currMovement * PLAYER_SPEED;
+	auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
 
 	if (_pManager.getPlayerState().onGround) {
 		if (currMovement != 0) {
-			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_RUN);
+			sprite.tex = _texRepo.loadTexture(spritePack.run);
 			sprite.flipHorizontal = currMovement < 0;
 			animation.wavelength = ANIMATION_PERIOD * 6;
 		}
 		else {
-			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_IDLE);
+			sprite.tex = _texRepo.loadTexture(spritePack.idle);
 			animation.wavelength = ANIMATION_PERIOD * 4;
 		}
 
@@ -110,7 +119,7 @@ void Scene::updatePlayer() {
 			velo.vector.y = -JUMP_SPEED;
 
 			animation.current = 0;
-			sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
+			sprite.tex = _texRepo.loadTexture(spritePack.jump);
 			if (currMovement != 0) {
 				sprite.flipHorizontal = currMovement < 0;
 			}
@@ -118,12 +127,14 @@ void Scene::updatePlayer() {
 		}
 	}
 	else {
-		sprite.tex = _texRepo.loadTexture(TextureIds::PLAYER_JUMP);
+		sprite.tex = _texRepo.loadTexture(spritePack.jump);
 		if (currMovement != 0) {
 			sprite.flipHorizontal = currMovement < 0;
 		}
 		animation.wavelength = ANIMATION_PERIOD * 8;
 	}
+
+	common::messages::PlayerUpdate update = { _pManager.getPlayerId(), 0, {0.0f, 0.0f}, {0.0f, 0.0f} };
 }
 
 void Scene::updateTransforms() {
@@ -157,8 +168,8 @@ void Scene::updateCollisions() {
 	std::vector<Collision> collisions;
 	for (auto entity : walls) {
 		const auto& wallRect = walls.get<TransformComponent>(entity).rect;
-		Vector2Df contactPoint;
-		Vector2Df contactNormal;
+		common::Vector2Df contactPoint;
+		common::Vector2Df contactNormal;
 		float contactTime;
 		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
 			// only diagonal collision will have both x and y as non-zero
@@ -185,7 +196,7 @@ void Scene::updateCollisions() {
 			break;
 
 		const auto& wallRect = walls.get<TransformComponent>(collision.entity).rect;
-		const Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
+		const common::Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
 		if (contactNormal.y < 0) {
 			onGround = true;
 		}

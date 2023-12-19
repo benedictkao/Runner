@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/Network.h>
 #include <network/Client.h>
 #include <player/PlayerManager.h>
 
@@ -12,8 +13,13 @@ public:
 	void connect();
 	bool isConnected();
 	void processReceivedMessages();
-	void sendUpdate();
 	void close();
+
+	template <common::messages::Type _type>
+	void send();
+
+	template <common::messages::Type _type, typename _Body>
+	void send(const _Body&);
 
 	/*
 	* Interface methods, do not remove

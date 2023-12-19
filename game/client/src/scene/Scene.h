@@ -22,7 +22,7 @@ private:
 public:
 	Scene(SDL2::Renderer, PlayerManager&, TextureRepo&, ConnectionManager&);
 
-	void init(SceneInfo data);
+	void init(const SceneInfo& data);
 	void updateLogic();
 	void updateTextures();
 
