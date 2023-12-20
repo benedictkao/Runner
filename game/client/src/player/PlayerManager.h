@@ -1,26 +1,38 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include "PlayerState.h"
+#include "PlayerRepo.h"
+#include "connection/ConnectionManager.h"
 #include "input/InputManager.h"
+#include "res/TextureRepo.h"
+
+struct PlayerMetaData
+{
+	entt::entity entityId;
+	unsigned int spriteId;
+	bool flipHorizontal;
+	bool onGround;
+};
 
 class PlayerManager {
 public:		
-	PlayerManager(const InputManager&);
+	PlayerManager(const InputManager&, const PlayerRepo&);
 
 public:
-	void updatePlayerState();
-	void setPlayerOnGround(bool);
-	const PlayerState& getPlayerState();
+	void updatePositions(entt::registry&, ConnectionManager&);
+	void updateSprites(entt::registry&, TextureRepo&);
 
-	void setPlayerId(int id);
-	int getPlayerId() const;
+	void setPlayerOnGround(bool);
+
+	void setEntityId(entt::entity);
 
 	void setSpriteId(unsigned int id);
 	unsigned int getSpriteId() const;
 	
 private:
 	const InputManager& _input;
-	PlayerState _state;	// TODO: make this unordered_map for multiplayer
-	int _playerGameId;
-	unsigned int _spriteId;
+	const PlayerRepo& _pRepo;
+	PlayerMetaData _playerMetaData;
 };

@@ -21,6 +21,7 @@ Scene::Scene(
 
 void Scene::init(const SceneInfo& data) {
 	_player = _registry.create();
+	_pManager.setEntityId(_player);
 	const auto& playerInfo = data.playerInfo;
 	const auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
 	auto idle = _texRepo.loadTexture(spritePack.idle);
@@ -29,7 +30,7 @@ void Scene::init(const SceneInfo& data) {
 
 	_registry.emplace<TransformComponent>(_player, playerInfo.transform);
 	// float scale = playerInfo.transform.size.x / spritePack.size.x;
-	_registry.emplace<SpriteComponent>(_player, idle, spritePack.size, 2)
+	_registry.emplace<SpriteComponent>(_player, idle, spritePack.size, 2)	// TODO: fix hardcoded scale value
 		.offset = spritePack.offset;
 	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
 	_registry.emplace<VelocityComponent>(_player);
@@ -75,7 +76,8 @@ void Scene::init(const SceneInfo& data) {
 
 void Scene::updateLogic() 
 {
-	updatePlayer();
+	_pManager.updatePositions(_registry, _connMgr);
+	//updatePlayer();
 	updateVelocities();
 	updateCollisions();
 	updateTransforms();
@@ -84,6 +86,7 @@ void Scene::updateLogic()
 void Scene::updateTextures()
 {
 	updateBackground();
+	_pManager.updateSprites(_registry, _texRepo);
 	updateAnimations();
 	updateSprites();
 	updateOverlay();
@@ -97,44 +100,42 @@ void Scene::updateBackground() {
 }
 
 void Scene::updatePlayer() {
-	_pManager.updatePlayerState();
-	const auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
-	int currMovement = _pManager.getPlayerState().movement.x;
-	auto& velo = _registry.get<VelocityComponent>(_player);
-	velo.vector.x = currMovement * PLAYER_SPEED;
-	auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
+	//_pManager.updatePlayerState();
+	//const auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
+	//int currMovement = _pManager.getPlayerState().movement.x;
+	//auto& velo = _registry.get<VelocityComponent>(_player);
+	//velo.vector.x = currMovement * PLAYER_SPEED;
+	//auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
 
-	if (_pManager.getPlayerState().onGround) {
-		if (currMovement != 0) {
-			sprite.tex = _texRepo.loadTexture(spritePack.run);
-			sprite.flipHorizontal = currMovement < 0;
-			animation.wavelength = ANIMATION_PERIOD * 6;
-		}
-		else {
-			sprite.tex = _texRepo.loadTexture(spritePack.idle);
-			animation.wavelength = ANIMATION_PERIOD * 4;
-		}
+	//if (_pManager.getPlayerState().onGround) {
+	//	if (currMovement != 0) {
+	//		sprite.tex = _texRepo.loadTexture(spritePack.run);
+	//		sprite.flipHorizontal = currMovement < 0;
+	//		animation.wavelength = ANIMATION_PERIOD * 6;
+	//	}
+	//	else {
+	//		sprite.tex = _texRepo.loadTexture(spritePack.idle);
+	//		animation.wavelength = ANIMATION_PERIOD * 4;
+	//	}
 
-		if (_pManager.getPlayerState().movement.y > 0) {
-			velo.vector.y = -JUMP_SPEED;
+	//	if (_pManager.getPlayerState().movement.y > 0) {
+	//		velo.vector.y = -JUMP_SPEED;
 
-			animation.current = 0;
-			sprite.tex = _texRepo.loadTexture(spritePack.jump);
-			if (currMovement != 0) {
-				sprite.flipHorizontal = currMovement < 0;
-			}
-			animation.wavelength = ANIMATION_PERIOD * 8;
-		}
-	}
-	else {
-		sprite.tex = _texRepo.loadTexture(spritePack.jump);
-		if (currMovement != 0) {
-			sprite.flipHorizontal = currMovement < 0;
-		}
-		animation.wavelength = ANIMATION_PERIOD * 8;
-	}
-
-	common::messages::PlayerUpdate update = { _pManager.getPlayerId(), 0, {0.0f, 0.0f}, {0.0f, 0.0f} };
+	//		animation.current = 0;
+	//		sprite.tex = _texRepo.loadTexture(spritePack.jump);
+	//		if (currMovement != 0) {
+	//			sprite.flipHorizontal = currMovement < 0;
+	//		}
+	//		animation.wavelength = ANIMATION_PERIOD * 8;
+	//	}
+	//}
+	//else {
+	//	sprite.tex = _texRepo.loadTexture(spritePack.jump);
+	//	if (currMovement != 0) {
+	//		sprite.flipHorizontal = currMovement < 0;
+	//	}
+	//	animation.wavelength = ANIMATION_PERIOD * 8;
+	//}
 }
 
 void Scene::updateTransforms() {
@@ -228,7 +229,7 @@ void Scene::updateOverlay()
 	);
 	int padding = 12;
 	int iconSize = 24;
-	int y = constants::WINDOW_HEIGHT - iconSize - padding;
+	int y = static_cast<int>(constants::WINDOW_HEIGHT) - iconSize - padding;
 	SDL2::Rect dest = { padding, y, iconSize, iconSize };
 	SDL2::blit(_renderer, tex, dest);
 }

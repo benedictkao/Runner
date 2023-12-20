@@ -89,9 +89,9 @@ template <typename _ConnectionCallback>
 void network::Client<_ConnectionCallback>::onConnected(ENetEvent* event)
 {
 	debug::log("[Client] Connected to server!");
+	_connection.setState(Connection::State::CONNECTED);
 	if constexpr (!std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value)
 		_callback->onConnected(event);
-	_connection.setState(Connection::State::CONNECTED);
 }
 
 template <typename _ConnectionCallback>

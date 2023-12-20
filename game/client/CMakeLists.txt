@@ -6,16 +6,16 @@ add_executable(client
 
 	"src/res/TextureRepo.cpp"
 
-	"src/network/ConnectionManager.cpp"
+	"src/connection/ConnectionManager.cpp"
 
 	"src/scene/Scene.cpp"
 	"src/scene/SceneLoader.cpp"
 
 	"src/player/PlayerManager.cpp"
+	"src/player/PlayerRepo.cpp"
 
 	"src/sdl/SDL.cpp"
 
-	# "src/math/Geometry.cpp"
 	"src/math/Math.cpp"
 	
 	"src/input/KeyboardHandler.cpp"

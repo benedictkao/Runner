@@ -20,7 +20,7 @@ namespace common
 		{
 			int playerId;
 			int spriteId;
-			Vector2Df position;
+			Rect2Df transform;
 			Vector2Df speed;
 		};
 

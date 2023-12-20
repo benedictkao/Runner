@@ -2,7 +2,7 @@
 
 #include <entt/entt.hpp>
 
-#include "network/ConnectionManager.h"
+#include "connection/ConnectionManager.h"
 #include "player/PlayerManager.h"
 #include "res/TextureRepo.h"
 #include "sdl/SDL.h"

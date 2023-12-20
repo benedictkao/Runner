@@ -2,12 +2,12 @@
 
 #include <common/Network.h>
 #include <network/Client.h>
-#include <player/PlayerManager.h>
+#include <player/PlayerRepo.h>
 
 class ConnectionManager
 {
 public:
-	ConnectionManager(PlayerManager& playerManager);
+	ConnectionManager(PlayerRepo& playerRepo);
 
 public:
 	void connect();
@@ -16,10 +16,18 @@ public:
 	void close();
 
 	template <common::messages::Type _type>
-	void send();
+	void send()
+	{
+		network::BufferWriter<common::messages::Type> writer;
+		_client.send(writer.writeToBuffer<_type>());
+	}
 
 	template <common::messages::Type _type, typename _Body>
-	void send(const _Body&);
+	void send(const _Body& body)
+	{
+		network::BufferWriter<common::messages::Type> writer;
+		_client.send(writer.writeToBuffer<_type>(body));
+	}
 
 	/*
 	* Interface methods, do not remove
@@ -29,6 +37,6 @@ public:
 
 private:
 	network::Client<ConnectionManager> _client;
-	PlayerManager& _playerManager;
+	PlayerRepo& _pRepo;
 	bool _active;
 };

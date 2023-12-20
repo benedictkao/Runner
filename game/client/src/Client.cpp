@@ -4,10 +4,11 @@
 
 #include <logging/Logger.h>
 
+#include "connection/ConnectionManager.h"
 #include "input/InputManager.h"
 #include "math/Math.h"
-#include "network/ConnectionManager.h"
 #include "player/PlayerManager.h"
+#include "player/PlayerRepo.h"
 #include "scene/Scene.h"
 #include "scene/SceneLoader.h"
 #include "sdl/SDL.h"
@@ -35,8 +36,9 @@ int Client::run() {
 
 	TextureRepo texRepo(_renderer);
 	MKInputManager inputManager;
-	PlayerManager pManager(inputManager);
-	ConnectionManager connMgr(pManager);
+	PlayerRepo pRepo;
+	ConnectionManager connMgr(pRepo);
+	PlayerManager pManager(inputManager, pRepo);
 	std::thread net_thread([&]() {
 		connMgr.connect();
 	});
