@@ -71,8 +71,17 @@ void ConnectionManager::processReceivedMessages()
 
 void ConnectionManager::onConnected(ENetEvent* event)
 {
-	debug::log("[ConnectionManager] Connected!");
-	send<common::messages::Type::PLAYER_JOIN>();
+	auto localId = _pRepo.getPlayerId();
+	if (localId == Player::DEFAULT_ID)
+	{
+		debug::log("[ConnectionManager] Joined new game!");
+		send<common::messages::Type::PLAYER_JOIN>();
+	}
+	else
+	{
+		debug::log("[ConnectionManager] Reconnected to game");
+		send<common::messages::Type::PLAYER_RECONNECT, common::messages::JoinDetails>({ localId });
+	}
 }
 
 void ConnectionManager::onDisconnected(ENetEvent* event)
