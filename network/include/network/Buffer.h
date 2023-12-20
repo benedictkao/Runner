@@ -25,6 +25,9 @@ namespace network {
 
 		template <typename _Data>
 		Buffer& read(_Data& data);
+		
+		template <typename _Data>
+		_Data read();
 
 		void fill(const void* data, size_t size);
 
@@ -62,4 +65,12 @@ network::Buffer& network::Buffer::read(_Data& data)
 	std::memcpy(&data, _internalBuffer.data() + newSize, readSize);
 	_internalBuffer.resize(newSize);
 	return *this;
+}
+
+template <typename _Data>
+_Data network::Buffer::read()
+{
+	_Data payload;
+	read(payload);
+	return payload;
 }

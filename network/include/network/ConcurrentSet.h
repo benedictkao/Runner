@@ -40,10 +40,8 @@ public:
 		std::vector<T> list;
 		_mux.lock();
 		list.reserve(_set.size());
-		for (auto item : _set)
-		{
+		for (const auto& item : _set)
 			list.push_back(item);
-		}
 		_mux.unlock();
 		return list;
 	}

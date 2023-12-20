@@ -20,22 +20,7 @@ Scene::Scene(
 ) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _connMgr(connMgr) {}
 
 void Scene::init(const SceneInfo& data) {
-	_player = _registry.create();
-	_pManager.setEntityId(_player);
-	const auto& playerInfo = data.playerInfo;
-	const auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
-	auto idle = _texRepo.loadTexture(spritePack.idle);
-	_texRepo.loadTexture(spritePack.run);
-	_texRepo.loadTexture(spritePack.jump);
-
-	_registry.emplace<TransformComponent>(_player, playerInfo.transform);
-	// float scale = playerInfo.transform.size.x / spritePack.size.x;
-	_registry.emplace<SpriteComponent>(_player, idle, spritePack.size, 2)	// TODO: fix hardcoded scale value
-		.offset = spritePack.offset;
-	_registry.emplace<AnimationComponent>(_player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
-	_registry.emplace<VelocityComponent>(_player);
-	_registry.emplace<GravityComponent>(_player);
-	_registry.emplace<TagComponent>(_player, "Player");
+	_pManager.addLocalPlayer(_registry, data.playerInfo, _texRepo);
 
 	_background = _registry.create();
 	auto bg = _texRepo.loadTexture(data.mapInfo.bg.id);
@@ -76,10 +61,9 @@ void Scene::init(const SceneInfo& data) {
 
 void Scene::updateLogic() 
 {
-	_pManager.updatePositions(_registry, _connMgr);
-	//updatePlayer();
+	_pManager.updatePositions(_registry, _connMgr, _texRepo);
 	updateVelocities();
-	updateCollisions();
+	_pManager.updateCollisions(_registry);
 	updateTransforms();
 }
 
@@ -99,45 +83,6 @@ void Scene::updateBackground() {
 	SDL2::blit(_renderer, sprite.tex, src, dest);
 }
 
-void Scene::updatePlayer() {
-	//_pManager.updatePlayerState();
-	//const auto& [sprite, animation] = _registry.get<SpriteComponent, AnimationComponent>(_player);
-	//int currMovement = _pManager.getPlayerState().movement.x;
-	//auto& velo = _registry.get<VelocityComponent>(_player);
-	//velo.vector.x = currMovement * PLAYER_SPEED;
-	//auto spritePack = SpriteIds::getPack(_pManager.getSpriteId());
-
-	//if (_pManager.getPlayerState().onGround) {
-	//	if (currMovement != 0) {
-	//		sprite.tex = _texRepo.loadTexture(spritePack.run);
-	//		sprite.flipHorizontal = currMovement < 0;
-	//		animation.wavelength = ANIMATION_PERIOD * 6;
-	//	}
-	//	else {
-	//		sprite.tex = _texRepo.loadTexture(spritePack.idle);
-	//		animation.wavelength = ANIMATION_PERIOD * 4;
-	//	}
-
-	//	if (_pManager.getPlayerState().movement.y > 0) {
-	//		velo.vector.y = -JUMP_SPEED;
-
-	//		animation.current = 0;
-	//		sprite.tex = _texRepo.loadTexture(spritePack.jump);
-	//		if (currMovement != 0) {
-	//			sprite.flipHorizontal = currMovement < 0;
-	//		}
-	//		animation.wavelength = ANIMATION_PERIOD * 8;
-	//	}
-	//}
-	//else {
-	//	sprite.tex = _texRepo.loadTexture(spritePack.jump);
-	//	if (currMovement != 0) {
-	//		sprite.flipHorizontal = currMovement < 0;
-	//	}
-	//	animation.wavelength = ANIMATION_PERIOD * 8;
-	//}
-}
-
 void Scene::updateTransforms() {
 	const auto& view = _registry.view<VelocityComponent, TransformComponent>();
 	for (auto entity : view) {
@@ -153,59 +98,6 @@ void Scene::updateVelocities() {
 		velo.vector.y += constants::GRAVITY_ACCEL;
 		math::coerceAtMost(velo.vector.y, constants::TERMINAL_DROP_VELO);
 	}
-}
-
-void Scene::updateCollisions() {
-	const auto& pRect = _registry.get<TransformComponent>(_player).rect;
-	auto& pMovement = _registry.get<VelocityComponent>(_player).vector;
-	const auto& walls = _registry.view<TransformComponent, WallComponent>();
-
-	struct Collision {
-		entt::entity entity;
-		float contactTime;
-		bool isDiagonal;
-	};
-
-	std::vector<Collision> collisions;
-	for (auto entity : walls) {
-		const auto& wallRect = walls.get<TransformComponent>(entity).rect;
-		common::Vector2Df contactPoint;
-		common::Vector2Df contactNormal;
-		float contactTime;
-		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
-			// only diagonal collision will have both x and y as non-zero
-			bool isDiagonal = static_cast<bool>(contactNormal.x * contactNormal.y);
-			collisions.push_back({entity, contactTime, isDiagonal});
-		}
-	}
-	std::sort(collisions.begin(), collisions.end(),
-		[](const Collision& a, const Collision& b) {
-			if (a.contactTime == b.contactTime) {
-				// resolve whichever is not diagonal first
-				return a.isDiagonal < b.isDiagonal;
-			}
-			else {
-				return a.contactTime < b.contactTime;
-			}
-		}
-	);
-
-	bool onGround = false;
-	for (const auto& collision : collisions) {
-		// player is not moving, no need to calculate further collisions
-		if (pMovement.x == 0 && pMovement.y == 0)
-			break;
-
-		const auto& wallRect = walls.get<TransformComponent>(collision.entity).rect;
-		const common::Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
-		if (contactNormal.y < 0) {
-			onGround = true;
-		}
-		//if (contactNormal.x != 0) {
-		//	debug::log("contactNormal = %f, %f", contactNormal.x, contactNormal.y);
-		//}
-	}
-	_pManager.setPlayerOnGround(onGround);
 }
 
 void Scene::updateAnimations() {

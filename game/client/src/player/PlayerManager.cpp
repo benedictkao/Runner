@@ -1,6 +1,7 @@
 #include "PlayerManager.h"
 
 #include "Components.h"
+#include "math/Math.h"
 #include "res/ResIds.h"
 
 static constexpr auto PLAYER_SPEED { 6.0f };	// TODO: make this customisable
@@ -8,80 +9,189 @@ static constexpr auto JUMP_SPEED{ 24.0f };		// TODO: make this customisable
 static constexpr auto ANIMATION_PERIOD{ 4 };	// TODO: make this customisable
 static constexpr unsigned int DEFAULT_SPRITE_ID { SpriteIds::PINK_MONSTER };
 
+static constexpr int LOCAL_PLAYER_ID { -1 };
 
-void PlayerManager::setPlayerOnGround(bool onGround) {
-	_playerMetaData.onGround = onGround;
+void PlayerManager::updateLocalPosition(entt::registry& registry, ConnectionManager& connMgr)
+{
+	auto& localPlayer = _metaData[LOCAL_PLAYER_ID];
+	entt::entity entityId = localPlayer.entityId;
+
+	const auto& inputArrows = _input.getState().arrows;
+	auto& velo = registry.get<VelocityComponent>(entityId);
+	velo.vector.x = inputArrows.x * PLAYER_SPEED;
+	if (velo.vector.x != 0)
+		localPlayer.flipHorizontal = velo.vector.x < 0;
+
+	if (inputArrows.y > 0 && localPlayer.onGround)
+	{
+		registry.get<AnimationComponent>(entityId).current = -1;	// will be incremented later
+		velo.vector.y = -JUMP_SPEED;
+	}
+
+	auto gameId = _pRepo.getPlayerId();
+	if (gameId != Player::DEFAULT_ID)
+	{
+		const common::messages::PlayerUpdate update = { 
+			gameId, 
+			localPlayer.spriteId, 
+			registry.get<TransformComponent>(entityId).rect, 
+			registry.get<VelocityComponent>(entityId).vector 
+		};
+		connMgr.send<common::messages::Type::PLAYER_UPDATE>(update);
+	}
 }
 
-void PlayerManager::setEntityId(entt::entity id)
+void PlayerManager::updateRemotePosition(entt::registry& registry, int playerId, const PlayerData& remoteData)
 {
-	_playerMetaData.entityId = id;
+	auto& playerData = _metaData[playerId];
+	playerData.spriteId = remoteData.spriteId;
+	if (remoteData.speed.x != 0)
+		playerData.flipHorizontal = remoteData.speed.x < 0;
+	registry.get<TransformComponent>(playerData.entityId).rect = remoteData.transform;
+	registry.get<VelocityComponent>(playerData.entityId).vector = remoteData.speed;
 }
 
-void PlayerManager::setSpriteId(unsigned int id)
+void PlayerManager::updateRemotePositions(entt::registry& registry, TextureRepo& texRepo)
 {
-	_playerMetaData.spriteId = id;
-}
+	const auto& allData = _pRepo.getRemoteData();
+	auto end = allData.size();
+	for (int playerId = 0; playerId < end; ++playerId)
+	{
+		const auto& remoteData = allData[playerId];
+		if (!remoteData.connected)
+			continue;
 
-unsigned int PlayerManager::getSpriteId() const
-{
-	return _playerMetaData.spriteId;
+		if (_metaData.count(playerId) == 0)
+			addPlayer(registry, playerId, remoteData, texRepo);
+		else
+			updateRemotePosition(registry, playerId, remoteData);
+	}
 }
 
 PlayerManager::PlayerManager(const InputManager& input, const PlayerRepo& pRepo):
 	_input(input),
-	_pRepo(pRepo),
-	_playerMetaData({ entt::null, SpriteIds::PINK_MONSTER, false })
+	_pRepo(pRepo)
 {}
 
-void PlayerManager::updatePositions(entt::registry& registry, ConnectionManager& connMgr)
+void PlayerManager::addLocalPlayer(entt::registry& registry, const PlayerInfo& playerInfo, TextureRepo& texRepo)
 {
-	entt::entity player = _playerMetaData.entityId;
+	int spriteId = DEFAULT_SPRITE_ID;	// FIXME: should not be hardcoded
+	addPlayer(registry, LOCAL_PLAYER_ID, { spriteId, playerInfo.transform, { 0.0f, 0.0f } }, texRepo);
+}
 
-	const auto& inputArrows = _input.getState().arrows;
-	auto& velo = registry.get<VelocityComponent>(player);
-	velo.vector.x = inputArrows.x * PLAYER_SPEED;
-	if (velo.vector.x != 0)
-		_playerMetaData.flipHorizontal = velo.vector.x < 0;
+void PlayerManager::addPlayer(entt::registry& registry, int id, const PlayerData& data, TextureRepo& texRepo)
+{
+	const auto spritePack = SpriteIds::getPack(data.spriteId);
+	auto idle = texRepo.loadTexture(spritePack.idle);
+	texRepo.loadTexture(spritePack.run);
+	texRepo.loadTexture(spritePack.jump);
 
-	if (inputArrows.y > 0 && _playerMetaData.onGround)
-	{
-		registry.get<AnimationComponent>(player).current = -1;	// will be incremented later
-		velo.vector.y = -JUMP_SPEED;
-	}
+	auto player = registry.create();
+	registry.emplace<TransformComponent>(player, data.transform);
+	// float scale = playerInfo.transform.size.x / spritePack.size.x;
+	registry.emplace<SpriteComponent>(player, idle, spritePack.size, 2)	// TODO: fix hardcoded scale value
+		.offset = spritePack.offset;
+	registry.emplace<AnimationComponent>(player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
+	registry.emplace<VelocityComponent>(player);
+	registry.emplace<GravityComponent>(player);
+	registry.emplace<TagComponent>(player, "Player");
 
-	const common::messages::PlayerUpdate update = { 
-		_pRepo.getPlayerId(), 
-		_playerMetaData.spriteId, 
-		registry.get<TransformComponent>(player).rect, 
-		registry.get<VelocityComponent>(player).vector 
+	_metaData[id] = { player, data.spriteId, false, false };
+}
+
+void PlayerManager::updatePositions(entt::registry& registry, ConnectionManager& connMgr, TextureRepo& texRepo)
+{
+	updateLocalPosition(registry, connMgr);
+	updateRemotePositions(registry, texRepo);
+}
+
+void PlayerManager::updateCollisions(entt::registry& registry)
+{
+	for (auto& pair : _metaData)
+		updateCollision(registry, pair.second);
+}
+
+void PlayerManager::updateCollision(entt::registry& registry, PlayerMetaData& playerData)
+{
+	auto player = playerData.entityId;
+
+	const auto& pRect = registry.get<TransformComponent>(player).rect;
+	auto& pMovement = registry.get<VelocityComponent>(player).vector;
+	const auto& walls = registry.view<TransformComponent, WallComponent>();
+
+	struct Collision {
+		entt::entity entity;
+		float contactTime;
+		bool isDiagonal;
 	};
-	connMgr.send<common::messages::Type::PLAYER_UPDATE>(update);
+
+	std::vector<Collision> collisions;
+	for (auto entity : walls) {
+		const auto& wallRect = walls.get<TransformComponent>(entity).rect;
+		common::Vector2Df contactPoint;
+		common::Vector2Df contactNormal;
+		float contactTime;
+		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
+			// only diagonal collision will have both x and y as non-zero
+			bool isDiagonal = static_cast<bool>(contactNormal.x * contactNormal.y);
+			collisions.push_back({entity, contactTime, isDiagonal});
+		}
+	}
+	std::sort(collisions.begin(), collisions.end(),
+		[](const Collision& a, const Collision& b) {
+			if (a.contactTime == b.contactTime) {
+				// resolve whichever is not diagonal first
+				return a.isDiagonal < b.isDiagonal;
+			}
+			else {
+				return a.contactTime < b.contactTime;
+			}
+		}
+	);
+
+	bool onGround = false;
+	for (const auto& collision : collisions) {
+		// player is not moving, no need to calculate further collisions
+		if (pMovement.x == 0 && pMovement.y == 0)
+			break;
+
+		const auto& wallRect = walls.get<TransformComponent>(collision.entity).rect;
+		const common::Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
+		if (contactNormal.y < 0) {
+			onGround = true;
+		}
+		//if (contactNormal.x != 0) {
+		//	debug::log("contactNormal = %f, %f", contactNormal.x, contactNormal.y);
+		//}
+	}
+	playerData.onGround = onGround;
 }
 
 void PlayerManager::updateSprites(entt::registry& registry, TextureRepo& texRepo)
 {
-	entt::entity player = _playerMetaData.entityId;
-
-	const auto& [sprite, animation] = registry.get<SpriteComponent, AnimationComponent>(player);
-	auto& horizontalMovement = registry.get<VelocityComponent>(player).vector.x;
-	auto spritePack = SpriteIds::getPack(_playerMetaData.spriteId);
-
-	if (_playerMetaData.onGround) 
+	for (const auto& pair : _metaData)
 	{
-		if (horizontalMovement != 0) {
-			sprite.tex = texRepo.loadTexture(spritePack.run);
-			animation.wavelength = ANIMATION_PERIOD * 6;
+		entt::entity player = pair.second.entityId;
+		const auto& [sprite, animation] = registry.get<SpriteComponent, AnimationComponent>(player);
+		auto& horizontalMovement = registry.get<VelocityComponent>(player).vector.x;
+		auto spritePack = SpriteIds::getPack(pair.second.spriteId);
+
+		if (pair.second.onGround) 
+		{
+			if (horizontalMovement != 0) {
+				sprite.tex = texRepo.loadTexture(spritePack.run);
+				animation.wavelength = ANIMATION_PERIOD * 6;
+			}
+			else {
+				sprite.tex = texRepo.loadTexture(spritePack.idle);
+				animation.wavelength = ANIMATION_PERIOD * 4;
+			}
 		}
-		else {
-			sprite.tex = texRepo.loadTexture(spritePack.idle);
-			animation.wavelength = ANIMATION_PERIOD * 4;
+		else 
+		{
+			sprite.tex = texRepo.loadTexture(spritePack.jump);
+			animation.wavelength = ANIMATION_PERIOD * 8;
 		}
+		sprite.flipHorizontal = pair.second.flipHorizontal;
 	}
-	else 
-	{
-		sprite.tex = texRepo.loadTexture(spritePack.jump);
-		animation.wavelength = ANIMATION_PERIOD * 8;
-	}
-	sprite.flipHorizontal = _playerMetaData.flipHorizontal;
 }

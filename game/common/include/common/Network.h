@@ -8,6 +8,7 @@ namespace common
 {
 	static constexpr int PORT_NUMBER{ 7777 };
 	static constexpr int PING_INTERVAL_MILLIS{ 2500 };
+	static constexpr int MAX_PLAYERS_PER_GAME{ 8 };
 
 	namespace messages
 	{

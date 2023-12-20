@@ -1,17 +1,19 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <entt/entt.hpp>
 
-#include "PlayerState.h"
 #include "PlayerRepo.h"
 #include "connection/ConnectionManager.h"
 #include "input/InputManager.h"
 #include "res/TextureRepo.h"
+#include "scene/SceneInfo.h"
 
 struct PlayerMetaData
 {
 	entt::entity entityId;
-	unsigned int spriteId;
+	int spriteId;
 	bool flipHorizontal;
 	bool onGround;
 };
@@ -21,18 +23,22 @@ public:
 	PlayerManager(const InputManager&, const PlayerRepo&);
 
 public:
-	void updatePositions(entt::registry&, ConnectionManager&);
+	void addLocalPlayer(entt::registry&, const PlayerInfo&, TextureRepo&);
+
+	void updatePositions(entt::registry&, ConnectionManager&, TextureRepo&);
+	void updateCollisions(entt::registry&);
 	void updateSprites(entt::registry&, TextureRepo&);
 
-	void setPlayerOnGround(bool);
+private:
+	void updateLocalPosition(entt::registry&, ConnectionManager&);
+	void updateRemotePosition(entt::registry&, int playerId, const PlayerData& remoteData);
+	void updateRemotePositions(entt::registry&, TextureRepo&);
+	void addPlayer(entt::registry&, int id, const PlayerData&, TextureRepo&);
 
-	void setEntityId(entt::entity);
-
-	void setSpriteId(unsigned int id);
-	unsigned int getSpriteId() const;
+	void updateCollision(entt::registry&, PlayerMetaData&);
 	
 private:
 	const InputManager& _input;
 	const PlayerRepo& _pRepo;
-	PlayerMetaData _playerMetaData;
+	std::unordered_map<int, PlayerMetaData> _metaData;
 };

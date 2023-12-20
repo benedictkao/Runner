@@ -36,31 +36,31 @@ void Server::run()
 			while (!inMessages.empty())
 			{
 				auto msg = inMessages.popFront();
-				common::messages::Type type;
-				msg.raw.read(type);
+				auto type = msg.raw.read<common::messages::Type>();
 				switch (type)
 				{
 				case common::messages::Type::PLAYER_JOIN:
 				{
 					int id = game.addPlayer(msg.source); // TODO: how to handle player disconnection?
 					common::messages::JoinDetails body = { id };
-					auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(body);
+					const auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(body);
 					debug::log("[Game Server] Player joined, assigned id %d", id);
 					network::MessageService::send(msg.source, buffer);
 				}
 				break;
 				case common::messages::Type::PLAYER_RECONNECT:
 				{
-					common::messages::JoinDetails payload;
-					msg.raw.read(payload);
+					auto payload = msg.raw.read<common::messages::JoinDetails>();
 					game.onReconnect(payload.playerId, msg.source);
 				}
 				break;
 				case common::messages::Type::PLAYER_UPDATE:
 				{
-					common::messages::PlayerUpdate payload;
-					msg.raw.read(payload);
+					auto update = msg.raw.read<common::messages::PlayerUpdate>();
+					const auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_UPDATE>(update);
+					game.updateOtherPlayers(msg.source, buffer);
 				}
+				break;
 				default:
 				break;
 				}

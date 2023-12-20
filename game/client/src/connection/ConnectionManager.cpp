@@ -41,8 +41,7 @@ void ConnectionManager::processReceivedMessages()
 	for (int i = 0; i < numMsgs; ++i)
 	{
 		network::Buffer buffer = inQueue.popFront().raw;
-		common::messages::Type type;
-		buffer.read(type);
+		auto type = buffer.read<common::messages::Type>();
 		switch (type) {
 		case common::messages::Type::PING:
 		{
@@ -51,10 +50,14 @@ void ConnectionManager::processReceivedMessages()
 		break;
 		case common::messages::Type::PLAYER_JOIN:
 		{
-			common::messages::JoinDetails payload;
-			buffer.read(payload);
-			debug::log("[ConnectionManager] Player Joined! Assigned id %d", payload.playerId);
-			_pRepo.setPlayerId(payload.playerId);
+			auto payload = buffer.read<common::messages::JoinDetails>();
+			_pRepo.onPlayerJoin(payload);
+		}
+		break;
+		case common::messages::Type::PLAYER_UPDATE:
+		{
+			auto payload = buffer.read<common::messages::PlayerUpdate>();
+			_pRepo.onPlayerUpdate(payload);
 		}
 		break;
 		default:
