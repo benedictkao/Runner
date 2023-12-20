@@ -20,8 +20,7 @@ namespace network
 		bool read(
 			_Connection& connection,
 			ConcurrentQueue<InMessage, _Mutex>& inQueue,
-			int timeout, 
-			TimeUnit& lastUpdated
+			int timeout
 		);
 
 	private:

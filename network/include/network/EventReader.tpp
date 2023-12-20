@@ -2,14 +2,12 @@ template <typename _Connection, typename _Mutex>
 bool network::EventReader::read(
 	_Connection& connection, 
 	ConcurrentQueue<InMessage, _Mutex>& inQueue,
-	int timeout, 
-	TimeUnit& lastUpdated
+	int timeout
 )
 {
 	ENetHost* host = connection.getHost();
 	while (auto event = readNext(host, timeout))
 	{
-		lastUpdated = network::currentTime();
 		switch (event->type)
 		{
 			case ENET_EVENT_TYPE_CONNECT:
@@ -17,6 +15,7 @@ bool network::EventReader::read(
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
+				connection.onReceive(event);
 				InMessage msg = { event->peer };
 				msg.raw.fill(event->packet->data, event->packet->dataLength);
 				inQueue.push(std::move(msg));

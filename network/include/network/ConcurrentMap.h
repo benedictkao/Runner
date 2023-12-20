@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <functional>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -39,6 +40,18 @@ public:
 		_mux.unlock();
 	}
 
+	void erase(std::function<bool(const _Value&)> predicate)
+	{
+		_mux.lock();
+		for (auto it = _map.begin(); it != _map.end();) {
+			if (predicate(it->second))
+				it = _map.erase(it);
+			else
+				++it;
+		}
+		_mux.unlock();
+	}
+
 	bool contains(const _Key& obj)
 	{
 		_mux.lock();
@@ -47,9 +60,29 @@ public:
 		return result;
 	}
 
-	std::vector<_Value> getKeys()
+	std::vector<_Key> eraseAndGetKeys(std::function<bool(const _Value&)> predicate)
 	{
-		std::vector<_Value> list;
+		std::vector<_Key> list;
+		_mux.lock();
+		list.reserve(_map.size());
+		for (auto it = _map.begin(); it != _map.end();) {
+			if (predicate(it->second))
+			{
+				it = _map.erase(it);
+			}
+			else
+			{
+				list.push_back(it->first);
+				++it;
+			}
+		}
+		_mux.unlock();
+		return list;
+	}
+
+	std::vector<_Key> getKeys()
+	{
+		std::vector<_Key> list;
 		_mux.lock();
 		list.reserve(_map.size());
 		for (const auto& pair : _map)

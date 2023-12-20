@@ -1,7 +1,10 @@
 #include <logging/Logger.h>
 
 template <typename _ConnectionCallback>
-network::Server<_ConnectionCallback>::Server(int port, int maxConnections): _host(createHost(port, maxConnections)), _clients(maxConnections), _callback(nullptr) 
+network::Server<_ConnectionCallback>::Server(int port, int maxConnections): 
+	_host(createHost(port, maxConnections)),
+	_clients(maxConnections),
+	_callback(nullptr) 
 {
 	static_assert(std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value, "Callback reference must be given for non-empty callback");
 }
@@ -10,7 +13,7 @@ template <typename _ConnectionCallback>
 network::Server<_ConnectionCallback>::Server(int port, int maxConnections, _ConnectionCallback& callback):
 	_host(createHost(port, maxConnections)),
 	_clients(maxConnections),
-	_callback(&callback) 
+	_callback(&callback)
 {}
 
 template <typename _ConnectionCallback>
@@ -22,10 +25,16 @@ inline network::Host network::Server<_ConnectionCallback>::createHost(int port, 
 }
 
 template <typename _ConnectionCallback>
+void network::Server<_ConnectionCallback>::onReceive(ENetEvent* event)
+{
+	_clients.set(event->peer, currentTime());
+}
+
+template <typename _ConnectionCallback>
 void network::Server<_ConnectionCallback>::onConnected(ENetEvent* event)
 {
 	debug::log( "[Server] A new client connected from %d:%d", event->peer->address.host, event->peer->address.port);
-	_clients.insert(event->peer);
+	_clients.set(event->peer, currentTime());
 	if constexpr (!std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value)
 		_callback->onConnected(event);
 }
@@ -57,10 +66,9 @@ template <typename _ConnectionCallback>
 void network::Server<_ConnectionCallback>::run(int interval)
 {
 	EventReader reader;
-	TimeUnit lastUpdated = network::currentTime();
 	while (true)	// TODO: add stop mechanism?
 	{
-		reader.read(*this, _readQueue, interval, lastUpdated);
+		reader.read(*this, _readQueue, interval);
 	}
 }
 
@@ -71,7 +79,15 @@ bool network::Server<_ConnectionCallback>::isConnected(ENetPeer* client)
 }
 
 template <typename _ConnectionCallback>
-ConcurrentSet<ENetPeer*>& network::Server<_ConnectionCallback>::getClients()
+std::vector<ENetPeer*> network::Server<_ConnectionCallback>::getClients()
 {
-	return _clients;
+	return _clients.getKeys();
+}
+
+template <typename _ConnectionCallback>
+std::vector<ENetPeer*> network::Server<_ConnectionCallback>::getActiveClients(int expiryTime)
+{
+	return _clients.eraseAndGetKeys([=](const TimeUnit& lastUpdated) -> bool {
+		return network::compareMillis(currentTime(), lastUpdated, expiryTime);
+	});
 }

@@ -4,7 +4,8 @@ template <typename _ConnectionCallback>
 network::Client<_ConnectionCallback>::Client(const char* serverName, int port):
 	_client(NULL, 1),
 	_server(nullptr),
-	_callback(nullptr)
+	_callback(nullptr),
+	_lastUpdated()
 {
 	static_assert(std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value, "Callback reference must be given for non-empty callback");
 	enet_address_set_host(&_serverAddress, serverName);
@@ -15,7 +16,8 @@ template <typename _ConnectionCallback>
 network::Client<_ConnectionCallback>::Client(const char* serverName, int port, _ConnectionCallback& callback):
 	_client(NULL, 1),
 	_server(nullptr),
-	_callback(&callback)
+	_callback(&callback),
+	_lastUpdated()
 {
 	enet_address_set_host(&_serverAddress, serverName);
 	_serverAddress.port = port;
@@ -86,10 +88,17 @@ network::Client<_ConnectionCallback>::InputQueue& network::Client<_ConnectionCal
 }
 
 template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::onReceive(ENetEvent* event)
+{
+	_lastUpdated = currentTime();
+}
+
+template <typename _ConnectionCallback>
 void network::Client<_ConnectionCallback>::onConnected(ENetEvent* event)
 {
 	debug::log("[Client] Connected to server!");
 	_connection.setState(Connection::State::CONNECTED);
+	_lastUpdated = currentTime();
 	if constexpr (!std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value)
 		_callback->onConnected(event);
 }
@@ -97,7 +106,7 @@ void network::Client<_ConnectionCallback>::onConnected(ENetEvent* event)
 template <typename _ConnectionCallback>
 bool network::Client<_ConnectionCallback>::onDisconnected(ENetEvent* event)
 {
-	debug::log("[Client] Disonnected to server");
+	debug::log("[Client] Disconnected from server");
 	if constexpr (!std::is_same<_ConnectionCallback, EmptyConnectionCallback>::value)
 		_callback->onDisconnected(event);
 	return true;
@@ -120,20 +129,19 @@ template <typename _ConnectionCallback>
 void network::Client<_ConnectionCallback>::readEvents(int timeout, int interval)
 {
 	EventReader reader;
-	auto lastUpdated = network::currentTime();
+	_lastUpdated = network::currentTime();
 	while (_connection.getRecentState() != Connection::State::DISCONNECTED)
 	{
+		bool disconnected = reader.read(*this, _readQueue, interval);
+		if (disconnected)
+			return;
+
 		auto now = network::currentTime();
-		auto timeSinceLastMsg = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdated);
-		if (timeSinceLastMsg >= std::chrono::milliseconds(timeout))
+		if (network::compareMillis(now, _lastUpdated, timeout))
 		{
 			debug::log("[Client] Connection timed out!");
 			return;
 		}
-
-		bool disconnected = reader.read(*this, _readQueue, interval, lastUpdated);
-		if (disconnected)
-			return;
 	}
 }
 

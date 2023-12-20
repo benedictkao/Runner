@@ -20,7 +20,7 @@ void Server::run()
 		while (true)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(common::PING_INTERVAL_MILLIS));
-			auto clients = _server.getClients().toList();
+			auto clients = _server.getActiveClients(common::PING_INTERVAL_MILLIS * 2);
 			debug::log("[Game Server] Pinging %d clients", clients.size());
 			for (auto client : clients)
 				network::MessageService::send(client, buffer);

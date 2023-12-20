@@ -7,6 +7,7 @@
 
 #include "Common.h"
 #include "ConcurrentSet.h"
+#include "ConcurrentMap.h"
 #include "EventReader.h"
 
 namespace network
@@ -24,20 +25,22 @@ namespace network
 	public:
 		void onConnected(ENetEvent*);
 		bool onDisconnected(ENetEvent*);
+		void onReceive(ENetEvent*);
 		ENetHost* getHost() const;
 		ConcurrentQueue<InMessage>& getInQueue();
 
 	public:
 		void run(int interval);
 		bool isConnected(ENetPeer* client);
-		ConcurrentSet<ENetPeer*>& getClients();
+		std::vector<ENetPeer*> getClients();
+		std::vector<ENetPeer*> getActiveClients(int expiryTime);
 
 	private:
 		inline Host createHost(int port, int maxConnections) const;
 
 	private:
 		Host _host;
-		ConcurrentSet<ENetPeer*> _clients;
+		ConcurrentMap<ENetPeer*, TimeUnit> _clients;
 		ConcurrentQueue<InMessage> _readQueue;
 		_ConnectionCallback* _callback;
 	};

@@ -11,10 +11,16 @@ namespace network
 {
 	typedef std::chrono::steady_clock clock;
 	typedef clock::time_point TimeUnit;
-
+	
 	inline TimeUnit currentTime()
 	{
 		return clock::now();
+	}
+
+	inline bool compareMillis(const TimeUnit& a, const TimeUnit& b, int threshold)
+	{
+		auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(a - b);
+		return diff > std::chrono::milliseconds(threshold);
 	}
 
 	namespace Bandwidth {

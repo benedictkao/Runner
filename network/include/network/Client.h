@@ -37,6 +37,7 @@ namespace network
 	public:
 		void onConnected(ENetEvent*);
 		bool onDisconnected(ENetEvent*);
+		void onReceive(ENetEvent*);
 		ENetHost* getHost() const;
 
 	public:
@@ -53,6 +54,7 @@ namespace network
 		ENetAddress _serverAddress;
 		Connection _connection;
 		InputQueue _readQueue;
+		TimeUnit _lastUpdated;
 	};
 }
 

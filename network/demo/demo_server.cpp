@@ -30,7 +30,6 @@ int main(int argc, char* argv[])
 	// GAME LOOP START
 	
 	auto& inQueue = server.getInQueue();
-	auto& clients = server.getClients();
 	network::BufferWriter<messages::Type> writer;
 	while (true)
 	{
@@ -51,7 +50,7 @@ int main(int argc, char* argv[])
 			case messages::Type::CHAT_MSG:
 			{
 				std::cout << "[main] Chat message received from " << inMsg.source << ", forwarding to other clients" << std::endl;
-				auto clientList = clients.toList();
+				auto clientList = server.getClients();
 				messages::body::ChatMsg msg;
 				inMsg.raw.read(msg);
 				for (auto client : clientList)
