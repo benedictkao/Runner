@@ -29,6 +29,20 @@ public:
 		_client.send(writer.writeToBuffer<_type>(body));
 	}
 
+	template <common::messages::Type _type>
+	void sendReliable()
+	{
+		network::BufferWriter<common::messages::Type> writer;
+		_client.sendReliable(writer.writeToBuffer<_type>());
+	}
+
+	template <common::messages::Type _type, typename _Body>
+	void sendReliable(const _Body& body)
+	{
+		network::BufferWriter<common::messages::Type> writer;
+		_client.sendReliable(writer.writeToBuffer<_type>(body));
+	}
+
 	/*
 	* Interface methods, do not remove
 	*/

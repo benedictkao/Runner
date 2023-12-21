@@ -50,13 +50,13 @@ namespace network
 	*/
 	namespace MessageService
 	{
-		int send(ENetPeer* peer, const Buffer& buffer);
+		int send(ENetPeer* peer, const Buffer& buffer, enet_uint32 flags = ENET_PACKET_FLAG_UNSEQUENCED);
 
 		/*
 		* Note: this method is not thread-safe.
 		* Caller is responsible for de-allocating packet memory
 		*/
-		ENetPacket* createPacket(const Buffer& buffer);
+		ENetPacket* createPacket(const Buffer& buffer, enet_uint32 flags);
 	};
 
 	template <typename _MsgType>

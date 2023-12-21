@@ -8,7 +8,13 @@
 #include "Game.h"
 
 static constexpr int MAX_NUM_CLIENTS{ 32 };
-static constexpr int READ_INTERVAL_MILLIS { 20 };
+static constexpr int READ_INTERVAL_MILLIS {
+#ifdef NDEBUG
+	0
+#else
+	20
+#endif
+};
 
 Server::Server(): _server(common::PORT_NUMBER, MAX_NUM_CLIENTS) {}
 
@@ -45,7 +51,7 @@ void Server::run()
 					common::messages::JoinDetails body = { id };
 					const auto& buffer = writer.writeToBuffer<common::messages::Type::PLAYER_JOIN>(body);
 					debug::log("[Game Server] Player joined, assigned id %d", id);
-					network::MessageService::send(msg.source, buffer);
+					network::MessageService::send(msg.source, buffer, ENET_PACKET_FLAG_RELIABLE);
 				}
 				break;
 				case common::messages::Type::PLAYER_RECONNECT:

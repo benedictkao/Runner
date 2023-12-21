@@ -122,7 +122,14 @@ template <typename _ConnectionCallback>
 void network::Client<_ConnectionCallback>::send(const Buffer& buffer)
 {
 	if (isConnected())
-		MessageService::send(_server, buffer);	// FIXME: should this be on a separate thread?
+		MessageService::send(_server, buffer);
+}
+
+template <typename _ConnectionCallback>
+void network::Client<_ConnectionCallback>::sendReliable(const Buffer& buffer)
+{
+	if (isConnected())
+		MessageService::send(_server, buffer, ENET_PACKET_FLAG_RELIABLE);
 }
 
 template <typename _ConnectionCallback>

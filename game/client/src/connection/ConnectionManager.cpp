@@ -75,12 +75,12 @@ void ConnectionManager::onConnected(ENetEvent* event)
 	if (localId == Player::DEFAULT_ID)
 	{
 		debug::log("[ConnectionManager] Joined new game!");
-		send<common::messages::Type::PLAYER_JOIN>();
+		sendReliable<common::messages::Type::PLAYER_JOIN>();
 	}
 	else
 	{
 		debug::log("[ConnectionManager] Reconnected to game");
-		send<common::messages::Type::PLAYER_RECONNECT, common::messages::JoinDetails>({ localId });
+		sendReliable<common::messages::Type::PLAYER_RECONNECT, common::messages::JoinDetails>({ localId });
 	}
 }
 

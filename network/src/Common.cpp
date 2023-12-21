@@ -61,15 +61,15 @@ void network::Connection::setState(State state)
 	_state = state;
 }
 
-int network::MessageService::send(ENetPeer* peer, const Buffer& buffer)
+int network::MessageService::send(ENetPeer* peer, const Buffer& buffer, enet_uint32 flags)
 {
-	ENetPacket* packet = createPacket(buffer);
+	ENetPacket* packet = createPacket(buffer, flags);
 	return enet_peer_send(peer, 0, packet);
 }
 
-ENetPacket* network::MessageService::createPacket(const Buffer& buffer)
+ENetPacket* network::MessageService::createPacket(const Buffer& buffer, enet_uint32 flags)
 {
 	auto data = buffer.data();
 	auto size = buffer.size();
-	return enet_packet_create(data, size, ENET_PACKET_FLAG_RELIABLE); // TODO: is this flag necessary?
+	return enet_packet_create(data, size, flags); // TODO: is this flag necessary?
 }

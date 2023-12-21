@@ -42,6 +42,7 @@ namespace network
 
 	public:
 		void send(const Buffer&);
+		void sendReliable(const Buffer&);
 
 	private:
 		void readEvents(int timeout, int interval);
