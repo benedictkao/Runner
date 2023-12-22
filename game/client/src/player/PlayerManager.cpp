@@ -1,12 +1,10 @@
 #include "PlayerManager.h"
 
 #include "Components.h"
+#include "Constants.h"
 #include "math/Math.h"
 #include "res/ResIds.h"
 
-static constexpr auto PLAYER_SPEED { 6.0f };	// TODO: make this customisable
-static constexpr auto JUMP_SPEED{ 24.0f };		// TODO: make this customisable
-static constexpr auto ANIMATION_PERIOD{ 4 };	// TODO: make this customisable
 static constexpr unsigned int DEFAULT_SPRITE_ID { SpriteIds::PINK_MONSTER };
 
 static constexpr int LOCAL_PLAYER_ID { -1 };
@@ -18,14 +16,14 @@ void PlayerManager::updateLocalPosition(entt::registry& registry, ConnectionMana
 
 	const auto& inputArrows = _input.getState().arrows;
 	auto& velo = registry.get<VelocityComponent>(entityId);
-	velo.vector.x = inputArrows.x * PLAYER_SPEED;
+	velo.vector.x = inputArrows.x * constants::BASE_PLAYER_MOVE_SPEED;
 	if (velo.vector.x != 0)
 		localPlayer.flipHorizontal = velo.vector.x < 0;
 
 	if (inputArrows.y > 0 && localPlayer.onGround)
 	{
 		registry.get<AnimationComponent>(entityId).current = -1;	// will be incremented later
-		velo.vector.y = -JUMP_SPEED;
+		velo.vector.y = -constants::BASE_PLAYER_JUMP_SPEED;
 	}
 
 	auto gameId = _pRepo.getPlayerId();
@@ -91,7 +89,7 @@ void PlayerManager::addPlayer(entt::registry& registry, int id, const PlayerData
 	// float scale = playerInfo.transform.size.x / spritePack.size.x;
 	registry.emplace<SpriteComponent>(player, idle, spritePack.size, 2)	// TODO: fix hardcoded scale value
 		.offset = spritePack.offset;
-	registry.emplace<AnimationComponent>(player, ANIMATION_PERIOD, ANIMATION_PERIOD * 6);
+	registry.emplace<AnimationComponent>(player, constants::ANIMATION_FRAME_PERIOD, constants::ANIMATION_FRAME_PERIOD * 6);
 	registry.emplace<VelocityComponent>(player);
 	registry.emplace<GravityComponent>(player);
 	registry.emplace<TagComponent>(player, "Player");
@@ -180,17 +178,17 @@ void PlayerManager::updateSprites(entt::registry& registry, TextureRepo& texRepo
 		{
 			if (horizontalMovement != 0) {
 				sprite.tex = texRepo.loadTexture(spritePack.run);
-				animation.wavelength = ANIMATION_PERIOD * 6;
+				animation.wavelength = constants::ANIMATION_FRAME_PERIOD * 6;
 			}
 			else {
 				sprite.tex = texRepo.loadTexture(spritePack.idle);
-				animation.wavelength = ANIMATION_PERIOD * 4;
+				animation.wavelength = constants::ANIMATION_FRAME_PERIOD * 4;
 			}
 		}
 		else 
 		{
 			sprite.tex = texRepo.loadTexture(spritePack.jump);
-			animation.wavelength = ANIMATION_PERIOD * 8;
+			animation.wavelength = constants::ANIMATION_FRAME_PERIOD * 8;
 		}
 		sprite.flipHorizontal = pair.second.flipHorizontal;
 	}

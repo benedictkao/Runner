@@ -1,8 +1,10 @@
-#include "Client.h"
+#include "GameClient.h"
 
 #include <thread>
 
 #include <logging/Logger.h>
+
+#include "Constants.h"
 
 #include "connection/ConnectionManager.h"
 #include "input/InputManager.h"
@@ -13,13 +15,11 @@
 #include "scene/SceneLoader.h"
 #include "sdl/SDL.h"
 
-static constexpr auto TARGET_FPS{ 60 };
-static constexpr auto MILLIS_PER_FRAME{ 1000 / TARGET_FPS };
 enum GAME_INIT_ERROR { SUBSYSTEM = 1, WINDOW, RENDERER };
 
-Client::Client() : _window(nullptr), _renderer(nullptr), _running(false) {}
+GameClient::GameClient() : _window(nullptr), _renderer(nullptr), _running(false) {}
 
-int Client::run() {
+int GameClient::run() {
 	const int initResult = SDL2::init();
 	if (initResult != SDL2::INIT_SUCCESS)
 		return GAME_INIT_ERROR::SUBSYSTEM;
@@ -32,7 +32,7 @@ int Client::run() {
 	if (!_renderer)
 		return GAME_INIT_ERROR::RENDERER;
 
-	debug::log("[SDL] Init success!");
+	debug::log("[GameClient] SDL init success!");
 
 	TextureRepo texRepo(_renderer);
 	MKInputManager inputManager;
@@ -80,8 +80,8 @@ int Client::run() {
 	return 0;
 }
 
-Uint64 Client::calculateSleepTime(Uint64 frameStart) {
+Uint64 GameClient::calculateSleepTime(Uint64 frameStart) {
 	Uint64 actualFrameTime = frameStart - SDL2::elapsedTimeInMillis();
-	Uint64 sleepTime = std::max<Uint64>(MILLIS_PER_FRAME - actualFrameTime, 0);
+	Uint64 sleepTime = std::max<Uint64>(constants::MILLIS_PER_FRAME - actualFrameTime, 0);
 	return sleepTime;
 }

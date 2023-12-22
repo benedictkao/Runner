@@ -2,7 +2,7 @@
 
 #include "sdl/SDL.h"
 
-class Client 
+class GameClient 
 {
 private:
 	SDL2::Window _window;
@@ -10,7 +10,7 @@ private:
 	bool _running;
 
 public:
-	Client();
+	GameClient();
 
 	int run();
 

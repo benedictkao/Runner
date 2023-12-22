@@ -1,7 +1,7 @@
 add_executable(client 
 	"src/main.cpp"
 
-	"src/Client.cpp"
+	"src/GameClient.cpp"
 	"src/Components.cpp"
 
 	"src/res/TextureRepo.cpp"
