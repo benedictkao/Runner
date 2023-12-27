@@ -60,11 +60,11 @@ int GameClient::run() {
 		SDL2::prepareScene(_renderer);
 		_running = inputManager.readInput();
 
-		// calculations
-		scene.updateLogic();
+		// update game logic
+		scene.update();
 
-		// ui updates
-		scene.updateTextures();
+		// update ui
+		scene.blit();
 
 		// actual render
 		SDL2::presentScene(_renderer);

@@ -15,16 +15,17 @@ public:
 	Scene(SDL2::Renderer, PlayerManager&, TextureRepo&, ConnectionManager&);
 
 	void init(const SceneInfo& data);
-	void updateLogic();
-	void updateTextures();
+	void update();
+	void blit();
 
 private:
-	void updateBackground();
-	void updateSprites();
 	void updateTransforms();
 	void updateVelocities();
 	void updateAnimations();
-	void updateOverlay();
+
+	void blitBackground();
+	void blitSprites();
+	void blitOverlay();
 
 private:
 	SDL2::Renderer _renderer;

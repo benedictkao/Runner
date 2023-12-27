@@ -25,17 +25,18 @@ public:
 public:
 	void addLocalPlayer(entt::registry&, const PlayerInfo&, TextureRepo&);
 
-	void updatePositions(entt::registry&, ConnectionManager&, TextureRepo&);
-	void updateCollisions(entt::registry&);
-	void updateSprites(entt::registry&, TextureRepo&);
+	void update(entt::registry&, ConnectionManager&, TextureRepo&);
+	void resolveCollisions(entt::registry&);
 
 private:
 	void updateLocalPosition(entt::registry&, ConnectionManager&);
 	void updateRemotePosition(entt::registry&, int playerId, const PlayerData& remoteData);
 	void updateRemotePositions(entt::registry&, TextureRepo&);
+	void updateSprites(entt::registry&, TextureRepo&);
+
 	void addPlayer(entt::registry&, int id, const PlayerData&, TextureRepo&);
 
-	void updateCollision(entt::registry&, PlayerMetaData&);
+	void resolveCollision(entt::registry&, PlayerMetaData&);
 	
 private:
 	const InputManager& _input;

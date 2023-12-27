@@ -97,19 +97,20 @@ void PlayerManager::addPlayer(entt::registry& registry, int id, const PlayerData
 	_metaData[id] = { player, data.spriteId, false, false };
 }
 
-void PlayerManager::updatePositions(entt::registry& registry, ConnectionManager& connMgr, TextureRepo& texRepo)
+void PlayerManager::update(entt::registry& registry, ConnectionManager& connMgr, TextureRepo& texRepo)
 {
 	updateLocalPosition(registry, connMgr);
 	updateRemotePositions(registry, texRepo);
+	updateSprites(registry, texRepo);
 }
 
-void PlayerManager::updateCollisions(entt::registry& registry)
+void PlayerManager::resolveCollisions(entt::registry& registry)
 {
 	for (auto& pair : _metaData)
-		updateCollision(registry, pair.second);
+		resolveCollision(registry, pair.second);
 }
 
-void PlayerManager::updateCollision(entt::registry& registry, PlayerMetaData& playerData)
+void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& playerData)
 {
 	auto player = playerData.entityId;
 

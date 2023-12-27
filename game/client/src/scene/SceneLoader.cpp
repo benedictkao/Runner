@@ -12,7 +12,6 @@ SceneInfo SceneLoader::load(int level)
 	SceneInfo data;
 	data.mapInfo.bg = { TextureIds::Background::DEFAULT, 2304, 1296 };
 	data.mapInfo.size = { constants::WINDOW_WIDTH, constants::WINDOW_HEIGHT };
-	data.mapInfo.walls = WallInfo::getDefault();
 
 	data.objects.reserve(60);
 	for (int i = 0; i < 30; ++i) {

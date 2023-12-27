@@ -37,50 +37,47 @@ void Scene::init(const SceneInfo& data) {
 		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 
-	if (data.mapInfo.walls.left)
-	{
-		auto lWall = _registry.create();
-		_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, data.mapInfo.size.y);
-		_registry.emplace<WallComponent>(lWall);
-		_registry.emplace<TagComponent>(lWall, "Left Wall");
-	}
-	if (data.mapInfo.walls.right)
-	{
-		auto rWall = _registry.create();
-		_registry.emplace<TransformComponent>(rWall, data.mapInfo.size.x, 0.0f, 1.0f, data.mapInfo.size.y);
-		_registry.emplace<WallComponent>(rWall);
-		_registry.emplace<TagComponent>(rWall, "Right Wall");
-	}
+
+	auto lWall = _registry.create();
+	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, data.mapInfo.size.y);
+	_registry.emplace<WallComponent>(lWall);
+	_registry.emplace<TagComponent>(lWall, "Left Wall");
+
+	auto rWall = _registry.create();
+	_registry.emplace<TransformComponent>(rWall, data.mapInfo.size.x, 0.0f, 1.0f, data.mapInfo.size.y);
+	_registry.emplace<WallComponent>(rWall);
+	_registry.emplace<TagComponent>(rWall, "Right Wall");
 
 	// FIXME: hardcoded floor for now
 	auto floor = _registry.create();
 	_registry.emplace<TransformComponent>(floor, 0.0f, data.mapInfo.size.y, data.mapInfo.size.x, 1.0f);
 	_registry.emplace<WallComponent>(floor);
 	_registry.emplace<TagComponent>(floor, "Floor");
+
+	// TEST: hardcode hammer
+	auto hammer = _registry.create();
+	auto hammerTex = _texRepo.loadTexture(TextureIds::Object::HAMMER);
+	_registry.emplace<TransformComponent>(hammer, 200.0f, data.mapInfo.size.y - 64.0f, 32.0f, 64.0f);
+	_registry.emplace<WallComponent>(hammer);
+	common::Vector2Df hammerSpriteSize = { 32.0f, 64.0f };
+	_registry.emplace<SpriteComponent>(hammer, hammerTex, hammerSpriteSize);
+	_registry.emplace<AnimationComponent>(hammer, constants::ANIMATION_FRAME_PERIOD, constants::ANIMATION_FRAME_PERIOD * 8);
 }
 
-void Scene::updateLogic() 
+void Scene::update() 
 {
-	_pManager.updatePositions(_registry, _connMgr, _texRepo);
+	_pManager.update(_registry, _connMgr, _texRepo);
 	updateVelocities();
-	_pManager.updateCollisions(_registry);
+	_pManager.resolveCollisions(_registry);
 	updateTransforms();
-}
-
-void Scene::updateTextures()
-{
-	updateBackground();
-	_pManager.updateSprites(_registry, _texRepo);
 	updateAnimations();
-	updateSprites();
-	updateOverlay();
 }
 
-void Scene::updateBackground() {
-	auto& sprite = _registry.get<SpriteComponent>(_background);
-	SDL2::Rect src = { 0, 0, static_cast<int>(constants::WINDOW_WIDTH) * 2, static_cast<int>(constants::WINDOW_HEIGHT) * 2 };
-	SDL2::Rect dest = { 0, 0, static_cast<int>(constants::WINDOW_WIDTH), static_cast<int>(constants::WINDOW_HEIGHT) };
-	SDL2::blit(_renderer, sprite.tex, src, dest);
+void Scene::blit()
+{
+	blitBackground();
+	blitSprites();
+	blitOverlay();
 }
 
 void Scene::updateTransforms() {
@@ -114,7 +111,14 @@ void Scene::updateAnimations() {
 	}
 }
 
-void Scene::updateOverlay()
+void Scene::blitBackground() {
+	auto& sprite = _registry.get<SpriteComponent>(_background);
+	SDL2::Rect src = { 0, 0, static_cast<int>(constants::WINDOW_WIDTH) * 2, static_cast<int>(constants::WINDOW_HEIGHT) * 2 };
+	SDL2::Rect dest = { 0, 0, static_cast<int>(constants::WINDOW_WIDTH), static_cast<int>(constants::WINDOW_HEIGHT) };
+	SDL2::blit(_renderer, sprite.tex, src, dest);
+}
+
+void Scene::blitOverlay()
 {
 	auto tex = _texRepo.loadTexture(
 		_connMgr.isConnected() ? TextureIds::Icon::CONNECTED : TextureIds::Icon::DISCONNECTED
@@ -126,7 +130,7 @@ void Scene::updateOverlay()
 	SDL2::blit(_renderer, tex, dest);
 }
 
-void Scene::updateSprites() {
+void Scene::blitSprites() {
 	const auto& view = _registry.view<SpriteComponent, TransformComponent>();
 	for (auto entity : view) {
 		const auto& [transform, sprite] = view.get<TransformComponent, SpriteComponent>(entity);
