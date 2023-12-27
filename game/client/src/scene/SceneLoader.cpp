@@ -10,7 +10,7 @@ SceneInfo SceneLoader::load(int level)
 	// TODO: can load data from file based on level. For now, just hardcode
 
 	SceneInfo data;
-	data.mapInfo.bg = { TextureIds::BACKGROUND, 2304, 1296 };
+	data.mapInfo.bg = { TextureIds::Background::DEFAULT, 2304, 1296 };
 	data.mapInfo.size = { constants::WINDOW_WIDTH, constants::WINDOW_HEIGHT };
 	data.mapInfo.walls = WallInfo::getDefault();
 
@@ -18,7 +18,7 @@ SceneInfo SceneLoader::load(int level)
 	for (int i = 0; i < 30; ++i) {
 		int rem = i % 3;
 		bool topRow = i > 26;
-		unsigned int texId = topRow ? TextureIds::RED_TILE : TextureIds::TILE;
+		unsigned int texId = topRow ? TextureIds::Tile::RED_STRIPED : TextureIds::Tile::BLUE;
 		common::Rect2Df transformL = {
 			TILE_SIZE * rem,
 			data.mapInfo.size.y - TILE_SIZE * (i / 3 + 1),

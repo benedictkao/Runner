@@ -117,7 +117,7 @@ void Scene::updateAnimations() {
 void Scene::updateOverlay()
 {
 	auto tex = _texRepo.loadTexture(
-		_connMgr.isConnected() ? TextureIds::ICON_CONNECTED : TextureIds::ICON_DISCONNECTED
+		_connMgr.isConnected() ? TextureIds::Icon::CONNECTED : TextureIds::Icon::DISCONNECTED
 	);
 	int padding = 12;
 	int iconSize = 24;
