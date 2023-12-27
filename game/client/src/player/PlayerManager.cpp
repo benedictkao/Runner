@@ -118,31 +118,38 @@ void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& p
 	auto& pMovement = registry.get<VelocityComponent>(player).vector;
 	const auto& walls = registry.view<TransformComponent, CollisionComponent>();
 
-	struct Collision {
+	struct Collision
+	{
 		entt::entity entity;
 		float contactTime;
 		bool isDiagonal;
 	};
 
 	std::vector<Collision> collisions;
-	for (auto entity : walls) {
+	for (auto entity : walls)
+	{
 		const auto& wallRect = walls.get<TransformComponent>(entity).rect;
 		common::Vector2Df contactPoint;
 		common::Vector2Df contactNormal;
 		float contactTime;
-		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
+		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime))
+		{
 			// only diagonal collision will have both x and y as non-zero
 			bool isDiagonal = contactNormal.y != 0 && contactNormal.x != 0;
 			collisions.push_back({entity, contactTime, isDiagonal});
 		}
 	}
 	std::sort(collisions.begin(), collisions.end(),
-		[](const Collision& a, const Collision& b) {
-			if (a.contactTime == b.contactTime) {
-				// resolve whichever is not diagonal first
+		[](const Collision& a, const Collision& b) 
+		{
+			if (a.contactTime == b.contactTime) 
+			{
+				// resolve whichever is NOT diagonal first
+				// comparator must return false for equal elements: https://stackoverflow.com/questions/65468629/stl-sort-debug-assertion-failed
 				return a.isDiagonal < b.isDiagonal;
 			}
-			else {
+			else 
+			{
 				return a.contactTime < b.contactTime;
 			}
 		}
@@ -156,12 +163,8 @@ void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& p
 
 		const auto& wallRect = walls.get<TransformComponent>(collision.entity).rect;
 		const common::Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
-		if (contactNormal.y < 0) {
+		if (contactNormal.y < 0)
 			onGround = true;
-		}
-		//if (contactNormal.x != 0) {
-		//	debug::log("contactNormal = %f, %f", contactNormal.x, contactNormal.y);
-		//}
 	}
 	playerData.onGround = onGround;
 }
@@ -177,16 +180,18 @@ void PlayerManager::updateSprites(entt::registry& registry, TextureRepo& texRepo
 
 		if (pair.second.onGround) 
 		{
-			if (horizontalMovement != 0) {
+			if (horizontalMovement != 0)
+			{
 				sprite.tex = texRepo.loadTexture(spritePack.run);
 				animation.wavelength = constants::ANIMATION_FRAME_PERIOD * 6;
 			}
-			else {
+			else
+			{
 				sprite.tex = texRepo.loadTexture(spritePack.idle);
 				animation.wavelength = constants::ANIMATION_FRAME_PERIOD * 4;
 			}
 		}
-		else 
+		else
 		{
 			sprite.tex = texRepo.loadTexture(spritePack.jump);
 			animation.wavelength = constants::ANIMATION_FRAME_PERIOD * 8;
