@@ -17,10 +17,21 @@ namespace network
 		return clock::now();
 	}
 
+	template <typename _Duration>
+	inline long long getMillis(_Duration duration)
+	{
+		return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+	}
+
+	template <typename _Duration>
+	inline long long getMicros(_Duration duration)
+	{
+		return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+	}
+
 	inline bool compareMillis(const TimeUnit& a, const TimeUnit& b, int threshold)
 	{
-		auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(a - b);
-		return diff > std::chrono::milliseconds(threshold);
+		return getMillis(a - b) > threshold;
 	}
 
 	namespace Bandwidth {

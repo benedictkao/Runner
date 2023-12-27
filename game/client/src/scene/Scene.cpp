@@ -3,21 +3,17 @@
 #include <logging/Logger.h>
 #include <vector>
 
-#include "Components.h"
 #include "Constants.h"
-#include "sdl/SDL.h"
+#include "component/Components.h"
 #include "math/Math.h"
-
-constexpr auto PLAYER_SPEED{ 6.0f };
-constexpr auto JUMP_SPEED{ 24.0f };
-constexpr auto ANIMATION_PERIOD{ 4 };
+#include "sdl/SDL.h"
 
 Scene::Scene(
 	SDL2::Renderer renderer,
 	PlayerManager& pManager,
 	TextureRepo& texRepo,
 	ConnectionManager& connMgr
-) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _connMgr(connMgr) {}
+) : _renderer(renderer), _pManager(pManager), _texRepo(texRepo), _connMgr(connMgr), _registry(), _background(entt::null) {}
 
 void Scene::init(const SceneInfo& data) {
 	_pManager.addLocalPlayer(_registry, data.playerInfo, _texRepo);
@@ -33,32 +29,32 @@ void Scene::init(const SceneInfo& data) {
 		_registry.emplace<TransformComponent>(platform, object.transform);
 		_registry.emplace<SpriteComponent>(platform, platformTex, object.sprite.size);
 		if (object.hasCollision)
-			_registry.emplace<WallComponent>(platform);
+			_registry.emplace<CollisionComponent>(platform);
 		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 
 
 	auto lWall = _registry.create();
 	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, data.mapInfo.size.y);
-	_registry.emplace<WallComponent>(lWall);
+	_registry.emplace<CollisionComponent>(lWall);
 	_registry.emplace<TagComponent>(lWall, "Left Wall");
 
 	auto rWall = _registry.create();
 	_registry.emplace<TransformComponent>(rWall, data.mapInfo.size.x, 0.0f, 1.0f, data.mapInfo.size.y);
-	_registry.emplace<WallComponent>(rWall);
+	_registry.emplace<CollisionComponent>(rWall);
 	_registry.emplace<TagComponent>(rWall, "Right Wall");
 
 	// FIXME: hardcoded floor for now
 	auto floor = _registry.create();
 	_registry.emplace<TransformComponent>(floor, 0.0f, data.mapInfo.size.y, data.mapInfo.size.x, 1.0f);
-	_registry.emplace<WallComponent>(floor);
+	_registry.emplace<CollisionComponent>(floor);
 	_registry.emplace<TagComponent>(floor, "Floor");
 
 	// TEST: hardcode hammer
 	auto hammer = _registry.create();
 	auto hammerTex = _texRepo.loadTexture(TextureIds::Object::HAMMER);
 	_registry.emplace<TransformComponent>(hammer, 200.0f, data.mapInfo.size.y - 64.0f, 32.0f, 64.0f);
-	_registry.emplace<WallComponent>(hammer);
+	_registry.emplace<CollisionComponent>(hammer);
 	common::Vector2Df hammerSpriteSize = { 32.0f, 64.0f };
 	_registry.emplace<SpriteComponent>(hammer, hammerTex, hammerSpriteSize);
 	_registry.emplace<AnimationComponent>(hammer, constants::ANIMATION_FRAME_PERIOD, constants::ANIMATION_FRAME_PERIOD * 8);

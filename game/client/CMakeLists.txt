@@ -2,11 +2,12 @@ add_executable(client
 	"src/main.cpp"
 
 	"src/GameClient.cpp"
-	"src/Components.cpp"
 
 	"src/res/TextureRepo.cpp"
 
 	"src/connection/ConnectionManager.cpp"
+	
+	"src/component/Components.cpp"
 
 	"src/scene/Scene.cpp"
 	"src/scene/SceneLoader.cpp"

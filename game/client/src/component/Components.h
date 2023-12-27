@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/Geometry.h>
+#include <entt/entt.hpp>
 
 #include "sdl/SDL.h"
 
@@ -42,4 +43,4 @@ struct VelocityComponent {
 
 struct GravityComponent {};
 
-struct WallComponent {};
+struct CollisionComponent {};

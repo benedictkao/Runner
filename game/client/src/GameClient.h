@@ -1,5 +1,8 @@
 #pragma once
 
+#include <network/Common.h>
+#include <stdint.h>
+
 #include "sdl/SDL.h"
 
 class GameClient 
@@ -14,5 +17,5 @@ public:
 
 	int run();
 
-	Uint64 calculateSleepTime(Uint64);
+	uint64_t calculateSleepTime(network::TimeUnit);
 };

@@ -1,7 +1,7 @@
 #include "PlayerManager.h"
 
-#include "Components.h"
 #include "Constants.h"
+#include "component/Components.h"
 #include "math/Math.h"
 #include "res/ResIds.h"
 
@@ -116,7 +116,7 @@ void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& p
 
 	const auto& pRect = registry.get<TransformComponent>(player).rect;
 	auto& pMovement = registry.get<VelocityComponent>(player).vector;
-	const auto& walls = registry.view<TransformComponent, WallComponent>();
+	const auto& walls = registry.view<TransformComponent, CollisionComponent>();
 
 	struct Collision {
 		entt::entity entity;
@@ -132,7 +132,7 @@ void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& p
 		float contactTime;
 		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime)) {
 			// only diagonal collision will have both x and y as non-zero
-			bool isDiagonal = static_cast<bool>(contactNormal.x * contactNormal.y);
+			bool isDiagonal = contactNormal.y != 0 && contactNormal.x != 0;
 			collisions.push_back({entity, contactTime, isDiagonal});
 		}
 	}

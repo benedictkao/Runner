@@ -1,5 +1,4 @@
 #include "Components.h"
-#include <iostream>
 
 TagComponent::TagComponent(const char* tag) : tag(tag) {}
 

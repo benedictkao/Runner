@@ -29,7 +29,7 @@ namespace math {
 
 	bool rayVsRect(
 		const common::Vector2Df& origin, 
-		const common::Vector2Df& direction, 
+		const common::Vector2Df& movement, 
 		const common::Rect2Df& target,
 		common::Vector2Df& contactPoint,
 		common::Vector2Df& contactNormal,
@@ -38,7 +38,7 @@ namespace math {
 
 	bool sweptRectVsRect(
 		const common::Rect2Df& movingRect,
-		const common::Vector2Df& arrows,
+		const common::Vector2Df& movement,
 		const common::Rect2Df& target,
 		common::Vector2Df& contactPoint,
 		common::Vector2Df& contactNormal,
@@ -47,7 +47,7 @@ namespace math {
 
 	common::Vector2Df resolveSweptRectVsRect(
 		const common::Rect2Df& movingRect,
-		common::Vector2Df& arrows,
+		common::Vector2Df& movement,
 		const common::Rect2Df& target
 	);
 }

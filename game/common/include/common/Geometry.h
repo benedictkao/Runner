@@ -2,7 +2,8 @@
 
 namespace common
 {
-	struct Vector2D {
+	struct Vector2D
+	{
 		int x;
 		int y;
 
@@ -12,7 +13,8 @@ namespace common
 		Vector2D operator/(const Vector2D& v) const;
 	};
 
-	struct Vector2Df {
+	struct Vector2Df
+	{
 		float x;
 		float y;
 
@@ -29,7 +31,8 @@ namespace common
 		Vector2Df inverse() const;
 	};
 
-	struct Rect2Df {
+	struct Rect2Df
+	{
 		Vector2Df pos;
 		Vector2Df size;
 	};

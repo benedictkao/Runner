@@ -15,6 +15,8 @@
 #include "scene/SceneLoader.h"
 #include "sdl/SDL.h"
 
+//#define LOG_FRAME_TIME
+
 enum GAME_INIT_ERROR { SUBSYSTEM = 1, WINDOW, RENDERER };
 
 GameClient::GameClient() : _window(nullptr), _renderer(nullptr), _running(false) {}
@@ -53,7 +55,7 @@ int GameClient::run() {
 	while (_running) {
 		// main game loop
 
-		Uint64 frameStart = SDL2::elapsedTimeInMillis();
+		auto frameStart = network::currentTime();
 
 		connMgr.processReceivedMessages();
 
@@ -72,7 +74,6 @@ int GameClient::run() {
 		Uint64 sleepTime = calculateSleepTime(frameStart);
 		SDL2::delay(static_cast<Uint32>(sleepTime));
 	}
-
 	connMgr.close();
 	texRepo.clear();
 	net_thread.join();
@@ -80,8 +81,13 @@ int GameClient::run() {
 	return 0;
 }
 
-Uint64 GameClient::calculateSleepTime(Uint64 frameStart) {
-	Uint64 actualFrameTime = frameStart - SDL2::elapsedTimeInMillis();
-	Uint64 sleepTime = std::max<Uint64>(constants::MILLIS_PER_FRAME - actualFrameTime, 0);
-	return sleepTime;
+uint64_t GameClient::calculateSleepTime(network::TimeUnit frameStart)
+{
+	auto actualFrameTime = network::currentTime() - frameStart;
+	auto actualFrameTimeMillis = network::getMillis(actualFrameTime);
+	auto sleepTime = std::max<long long>(constants::MILLIS_PER_FRAME - actualFrameTimeMillis, 0);
+	#ifdef LOG_FRAME_TIME
+	std::cout << network::getMicros(actualFrameTime) << "ms" << std::endl;
+	#endif
+	return static_cast<uint64_t>(sleepTime);
 }
