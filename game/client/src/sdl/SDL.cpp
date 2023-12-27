@@ -56,12 +56,7 @@ void SDL2::blit(Renderer renderer, Texture tex, const Rect& dest) {
 	SDL_RenderCopy(renderer, tex, NULL, &dest);
 }
 
-void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& dest) {
-	SDL_RenderCopy(renderer, tex, &src, &dest);
-}
-
-void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& dest, bool flipHorizontal) {
-	SDL_RendererFlip flipFlags = flipHorizontal ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+void SDL2::blit(Renderer renderer, Texture tex, const Rect& src, const Rect& dest, SDL_RendererFlip flipFlags) {
 	//int status = SDL_RenderCopyEx(renderer, tex, &src, &dest, 0, NULL, flipFlags);
 	//if (status != 0)
 	//	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION,

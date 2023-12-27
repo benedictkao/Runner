@@ -114,31 +114,69 @@ void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& p
 {
 	auto player = playerData.entityId;
 
-	const auto& pRect = registry.get<TransformComponent>(player).rect;
+	auto& pRect = registry.get<TransformComponent>(player).rect;
 	auto& pMovement = registry.get<VelocityComponent>(player).vector;
 	const auto& walls = registry.view<TransformComponent, CollisionComponent>();
+	const auto& animWalls = registry.view<TransformComponent, AnimationComponent, AnimatedColliderComponent>();
 
 	struct Collision
 	{
 		entt::entity entity;
 		float contactTime;
 		bool isDiagonal;
+		common::Vector2Df wallVelo;
+		common::Vector2Df wallDisplacement;
 	};
 
 	std::vector<Collision> collisions;
-	for (auto entity : walls)
+
+	for (auto wall : walls)
 	{
-		const auto& wallRect = walls.get<TransformComponent>(entity).rect;
+		const auto& wallRect = walls.get<TransformComponent>(wall).rect;
 		common::Vector2Df contactPoint;
 		common::Vector2Df contactNormal;
 		float contactTime;
+
 		if (math::sweptRectVsRect(pRect, pMovement, wallRect, contactPoint, contactNormal, contactTime))
 		{
 			// only diagonal collision will have both x and y as non-zero
 			bool isDiagonal = contactNormal.y != 0 && contactNormal.x != 0;
-			collisions.push_back({entity, contactTime, isDiagonal});
+			collisions.push_back({wall, contactTime, isDiagonal, { 0.0f, 0.0f }, { 0.0f, 0.0f }});
 		}
 	}
+
+	for (auto animWall : animWalls)
+	{
+		const auto& [transform, anim, collider] = animWalls.get(animWall);
+
+		common::Vector2Df contactPoint;
+		common::Vector2Df contactNormal;
+		float contactTime;
+		
+		// adjust player velo relative to wall
+		const common::Vector2Df dir = collider.isVertical ? common::Vector2Df(0.0f, 1.0f) : common::Vector2Df(1.0f, 0.0f);
+
+		auto currDisplacement = collider.displacements[anim.current / anim.period];
+		int next = anim.current + 1;
+		next = next >= anim.wavelength ? 0 : next;
+		auto speed = collider.displacements[next / anim.period] - currDisplacement;
+		const common::Vector2Df wallVelo = dir * speed;
+		pMovement -= wallVelo;
+
+		common::Rect2Df target = transform.rect;
+		auto wallDisplacement = dir * currDisplacement;
+		target.pos += wallDisplacement;
+		if (math::sweptRectVsRect(pRect, pMovement, target, contactPoint, contactNormal, contactTime))
+		{
+			// only diagonal collision will have both x and y as non-zero
+			bool isDiagonal = contactNormal.y != 0 && contactNormal.x != 0;
+			collisions.push_back({animWall, contactTime, isDiagonal, wallVelo, wallDisplacement});
+		}
+
+		// revert player velo
+		pMovement += wallVelo;
+	}
+
 	std::sort(collisions.begin(), collisions.end(),
 		[](const Collision& a, const Collision& b) 
 		{
@@ -161,10 +199,27 @@ void PlayerManager::resolveCollision(entt::registry& registry, PlayerMetaData& p
 		if (pMovement.x == 0 && pMovement.y == 0)
 			break;
 
-		const auto& wallRect = walls.get<TransformComponent>(collision.entity).rect;
-		const common::Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, wallRect);
+		auto target = walls.get<TransformComponent>(collision.entity).rect;
+		target.pos += collision.wallDisplacement;
+		
+		// adjust player velo relative to wall
+		pMovement -= collision.wallVelo;
+
+		const common::Vector2Df contactNormal = math::resolveSweptRectVsRect(pRect, pMovement, target);
 		if (contactNormal.y < 0)
 			onGround = true;
+
+		/*
+		* FIX ME!!!!
+		* 
+		* Player is "jumping" up when being pushed up because wallVelo is being added to playerVelo. wallVelo is updated instantaneously
+		* by AnimatedColliderComponent logic, but player velo remains.
+		* 
+		* Potential solution: instead of adding wall velo back to pMovement, can this be acted on the transform directly?
+		*/
+
+		//pMovement += collision.wallVelo;
+		pRect.pos += collision.wallVelo;
 	}
 	playerData.onGround = onGround;
 }

@@ -33,7 +33,6 @@ void Scene::init(const SceneInfo& data) {
 		_registry.emplace<TagComponent>(platform, "Platform");
 	}
 
-
 	auto lWall = _registry.create();
 	_registry.emplace<TransformComponent>(lWall, -1.0f, 0.0f, 1.0f, data.mapInfo.size.y);
 	_registry.emplace<CollisionComponent>(lWall);
@@ -53,11 +52,21 @@ void Scene::init(const SceneInfo& data) {
 	// TEST: hardcode hammer
 	auto hammer = _registry.create();
 	auto hammerTex = _texRepo.loadTexture(TextureIds::Object::HAMMER);
+	auto hammerFramePeriod = constants::ANIMATION_FRAME_PERIOD * 2;
 	_registry.emplace<TransformComponent>(hammer, 200.0f, data.mapInfo.size.y - 64.0f, 32.0f, 64.0f);
-	_registry.emplace<CollisionComponent>(hammer);
 	common::Vector2Df hammerSpriteSize = { 32.0f, 64.0f };
-	_registry.emplace<SpriteComponent>(hammer, hammerTex, hammerSpriteSize);
-	_registry.emplace<AnimationComponent>(hammer, constants::ANIMATION_FRAME_PERIOD, constants::ANIMATION_FRAME_PERIOD * 8);
+	_registry.emplace<SpriteComponent>(hammer, hammerTex, hammerSpriteSize)
+		.flipVertical = true;
+	_registry.emplace<AnimationComponent>(hammer, hammerFramePeriod, hammerFramePeriod * 8);
+	auto& animCollider = _registry.emplace<AnimatedColliderComponent>(hammer, 8);
+	animCollider.displacements[0] = 32.0f;
+	animCollider.displacements[1] = 10.0f;
+	animCollider.displacements[2] = 0.0f;
+	animCollider.displacements[3] = 0.0f;
+	animCollider.displacements[4] = 0.0f;
+	animCollider.displacements[5] = 10.0f;
+	animCollider.displacements[6] = 20.0f;
+	animCollider.displacements[7] = 32.0f;
 }
 
 void Scene::update() 
@@ -84,10 +93,12 @@ void Scene::updateTransforms() {
 	}
 }
 
-void Scene::updateVelocities() {
-	const auto& view = _registry.view<VelocityComponent, GravityComponent>();
-	for (auto entity : view) {
-		auto& velo = view.get<VelocityComponent>(entity);
+void Scene::updateVelocities() 
+{
+	const auto& gravityView = _registry.view<VelocityComponent, GravityComponent>();
+	for (auto entity : gravityView) 
+	{
+		auto& velo = gravityView.get<VelocityComponent>(entity);
 		velo.vector.y += constants::GRAVITY_ACCEL;
 		math::coerceAtMost(velo.vector.y, constants::TERMINAL_DROP_VELO);
 	}
@@ -97,13 +108,12 @@ void Scene::updateAnimations() {
 	const auto& view = _registry.view<AnimationComponent, SpriteComponent>();
 	for (auto entity : view) {
 		const auto& [animation, sprite] = view.get(entity);
-		if (animation.current >= animation.wavelength)
-			animation.current = 0;
 
 		int spritePos = animation.current / animation.period;
 		sprite.srcRect.pos.x = spritePos * sprite.srcRect.size.x;
 
-		++animation.current;
+		if (++animation.current >= animation.wavelength)
+			animation.current = 0;
 	}
 }
 
@@ -142,6 +152,12 @@ void Scene::blitSprites() {
 
 		const auto& srcPos = sprite.srcRect.pos;
 		SDL2::Rect src = { static_cast<int>(srcPos.x), static_cast<int>(srcPos.y), static_cast<int>(size.x), static_cast<int>(size.y) };
-		SDL2::blit(_renderer, sprite.tex, src, dest, sprite.flipHorizontal);
+
+		int flipFlags = SDL_FLIP_NONE;
+		if (sprite.flipHorizontal)
+			flipFlags |= SDL_FLIP_HORIZONTAL;
+		if (sprite.flipVertical)
+			flipFlags |= SDL_FLIP_VERTICAL;
+		SDL2::blit(_renderer, sprite.tex, src, dest, static_cast<SDL_RendererFlip>(flipFlags));
 	}
 }

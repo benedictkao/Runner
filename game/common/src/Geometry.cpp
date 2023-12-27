@@ -42,9 +42,17 @@ namespace common
 		return { x / f, y / f };
 	}
 
-	Vector2Df& Vector2Df::operator+=(const Vector2Df& v) {
+	Vector2Df& Vector2Df::operator+=(const Vector2Df& v) 
+	{
 		x += v.x;
 		y += v.y;
+		return *this;
+	}
+	
+	Vector2Df& Vector2Df::operator-=(const Vector2Df& v) 
+	{
+		x -= v.x;
+		y -= v.y;
 		return *this;
 	}
 

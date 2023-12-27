@@ -27,6 +27,7 @@ namespace common
 		Vector2Df operator/(float f) const;
 
 		Vector2Df& operator+=(const Vector2Df& v);
+		Vector2Df& operator-=(const Vector2Df& v);
 
 		Vector2Df inverse() const;
 	};

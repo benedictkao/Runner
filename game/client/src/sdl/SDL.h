@@ -36,9 +36,7 @@ namespace SDL2 {
 
 	void blit(Renderer, Texture, const Rect& dest);
 
-	void blit(Renderer, Texture, const Rect& src, const Rect& dest);
-
-	void blit(Renderer, Texture, const Rect& src, const Rect& dest, bool flipHorizontal);
+	void blit(Renderer, Texture, const Rect& src, const Rect& dest, SDL_RendererFlip flipFlags = SDL_FLIP_NONE);
 
 	void prepareScene(Renderer);
 
